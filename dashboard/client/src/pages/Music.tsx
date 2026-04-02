@@ -43,9 +43,11 @@ const Music = () => {
     const progressRef = useRef<number>(0);
     const lastUpdateRef = useRef<number>(Date.now());
 
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
     const fetchStatus = async () => {
         try {
-            const res = await axios.get(`http://localhost:3001/api/guild/${guildId}/music`, { withCredentials: true });
+            const res = await axios.get(`${API_URL}/api/guild/${guildId}/music`, { withCredentials: true });
             const data = res.data;
             setStatus(data);
             
@@ -63,7 +65,7 @@ const Music = () => {
 
     const fetchMusicLogs = async () => {
         try {
-            const res = await axios.get(`http://localhost:3001/api/guild/${guildId}/music/logs`, { withCredentials: true });
+            const res = await axios.get(`${API_URL}/api/guild/${guildId}/music/logs`, { withCredentials: true });
             setLogs(res.data);
         } catch (error) {
             console.error("Logs failed:", error);
@@ -99,7 +101,8 @@ const Music = () => {
 
     const handleControl = async (action: string, value?: any) => {
         try {
-            await axios.post(`http://localhost:3001/api/guild/${guildId}/music/control`, { action, value }, { withCredentials: true });
+            await axios.post(`${API_URL}/api/guild/${guildId}/music/control`, { action, value }, { withCredentials: true });
+
             // Optimistic update for UI feel
             if (action === "pause") setStatus(prev => prev ? { ...prev, paused: true } : null);
             if (action === "resume") setStatus(prev => prev ? { ...prev, paused: false } : null);

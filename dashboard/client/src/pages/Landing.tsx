@@ -13,8 +13,10 @@ const Landing = () => {
     const [statsData, setStatsData] = useState({ totalServers: 0, totalUsers: 0, commandsProcessed: 0 });
 
     useEffect(() => {
-        axios.get("http://localhost:3001/api/stats").then(res => setStatsData(res.data)).catch(() => {});
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+        axios.get(`${API_URL}/api/stats`).then(res => setStatsData(res.data)).catch(() => {});
     }, []);
+
 
     const stats = [
         { label: "Synced Servers", value: statsData.totalServers.toString(), icon: <Server size={20} /> },

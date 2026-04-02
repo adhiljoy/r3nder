@@ -16,15 +16,16 @@ export const startDashboard = (client: R3NDERClient) => {
 
     const app = express();
     const port = 3001;
-
+    const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 // CORS - Essential for React Dashboard
 app.use(cors({
-    origin: ["http://localhost:3000", "http://localhost:5173"],
+    origin: FRONTEND_URL,
     credentials: true
 }));
 
 app.use(express.json());
+app.use(cookieParser());
 
 // Session with Shared Database
 app.use(session({
@@ -59,11 +60,11 @@ const isAuth = (req: any, res: any, next: any) => {
 app.get("/auth/discord", passport.authenticate("discord"));
 app.get("/auth/callback", passport.authenticate("discord", {
 
-    failureRedirect: "http://localhost:5173"
+    failureRedirect: FRONTEND_URL
 }), (req: any, res) => {
     const adminIds = (process.env.ADMIN_IDS || "").split(",");
     const isAdmin = adminIds.includes(req.user.id);
-    res.redirect(isAdmin ? "http://localhost:5173/core/overview" : "http://localhost:5173/portal");
+    res.redirect(isAdmin ? `${FRONTEND_URL}/core/overview` : `${FRONTEND_URL}/portal`);
 });
 
 app.get("/api/user", isAuth, (req: any, res) => {

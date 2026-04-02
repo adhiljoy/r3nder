@@ -14,16 +14,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.get("http://localhost:3001/api/user", { withCredentials: true })
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+        axios.get(`${API_URL}/api/user`, { withCredentials: true })
             .then(res => setUser(res.data))
             .catch(() => setUser(null))
             .finally(() => setLoading(false));
     }, []);
 
     const logout = () => {
-        axios.get("http://localhost:3001/api/auth/logout", { withCredentials: true })
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+        axios.get(`${API_URL}/api/auth/logout`, { withCredentials: true })
             .then(() => setUser(null));
     };
+
 
     return (
         <AuthContext.Provider value={{ user, loading, logout }}>
