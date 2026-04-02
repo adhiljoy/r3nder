@@ -27,7 +27,7 @@ const ServerLogs = () => {
 
     const fetchLogs = () => {
         setLoading(true);
-        const API_URL = import.meta.env.VITE_API_URL || "https://ACTUAL_RENDER_URL";
+        const API_URL = import.meta.env.VITE_API_URL || "https://https://r3nder-api.onrender.com";
         axios.get(`${API_URL}/api/guild/${guildId}/logs`, {
             params: { page, search, type },
             withCredentials: true
@@ -49,7 +49,7 @@ const ServerLogs = () => {
         fetchLogs();
 
         // Socket.IO Real-time Logic
-        const API_URL = import.meta.env.VITE_API_URL || "https://ACTUAL_RENDER_URL";
+        const API_URL = import.meta.env.VITE_API_URL || "https://https://r3nder-api.onrender.com";
         const socket = io(API_URL, {
 
             query: { guildId }

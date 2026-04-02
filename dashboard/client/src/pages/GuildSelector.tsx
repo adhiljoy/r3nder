@@ -16,7 +16,7 @@ const GuildSelector = () => {
     useEffect(() => {
         const fetchGuilds = async () => {
             try {
-                const API_URL = import.meta.env.VITE_API_URL || "https://ACTUAL_RENDER_URL";
+                const API_URL = import.meta.env.VITE_API_URL || "https://https://r3nder-api.onrender.com";
                 const res = await axios.get(`${API_URL}/api/guilds`, { withCredentials: true });
                 setGuilds(res.data.guilds);
             } catch (err) {

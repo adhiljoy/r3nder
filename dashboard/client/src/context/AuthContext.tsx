@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const API_URL = import.meta.env.VITE_API_URL || "https://ACTUAL_RENDER_URL";
+        const API_URL = import.meta.env.VITE_API_URL || "https://https://r3nder-api.onrender.com";
         axios.get(`${API_URL}/api/user`, { withCredentials: true })
             .then(res => setUser(res.data))
             .catch(() => setUser(null))
@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, []);
 
     const logout = () => {
-        const API_URL = import.meta.env.VITE_API_URL || "https://ACTUAL_RENDER_URL";
+        const API_URL = import.meta.env.VITE_API_URL || "https://https://r3nder-api.onrender.com";
         axios.get(`${API_URL}/api/auth/logout`, { withCredentials: true })
             .then(() => setUser(null));
     };

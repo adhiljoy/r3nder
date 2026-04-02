@@ -10,8 +10,9 @@ function walk(dir) {
             walk(fullPath);
         } else if (fullPath.endsWith('.tsx') || fullPath.endsWith('.ts')) {
             let content = fs.readFileSync(fullPath, 'utf8');
-            if (content.includes('YOUR_RENDER_BACKEND_URL')) {
-                let newContent = content.replace(/YOUR_RENDER_BACKEND_URL/g, 'ACTUAL_RENDER_URL');
+            if (content.includes('ACTUAL_RENDER_URL') || content.includes('YOUR_RENDER_BACKEND_URL')) {
+                let newContent = content.replace(/ACTUAL_RENDER_URL/g, 'https://r3nder-api.onrender.com')
+                                        .replace(/YOUR_RENDER_BACKEND_URL/g, 'https://r3nder-api.onrender.com');
                 fs.writeFileSync(fullPath, newContent, 'utf8');
                 console.log(`Purged: ${fullPath}`);
             }

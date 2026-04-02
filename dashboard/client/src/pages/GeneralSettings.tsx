@@ -29,7 +29,7 @@ const GeneralSettings = () => {
 
     const fetchSettings = async () => {
         try {
-            const API_URL = import.meta.env.VITE_API_URL || "https://ACTUAL_RENDER_URL";
+            const API_URL = import.meta.env.VITE_API_URL || "https://https://r3nder-api.onrender.com";
             const res = await axios.get(`${API_URL}/api/guild/${guildId}/settings`, { withCredentials: true });
             setSettings(res.data);
             setLoading(false);
@@ -41,7 +41,7 @@ const GeneralSettings = () => {
     const saveSettings = async () => {
         setSaving(true);
         try {
-            const API_URL = import.meta.env.VITE_API_URL || "https://ACTUAL_RENDER_URL";
+            const API_URL = import.meta.env.VITE_API_URL || "https://https://r3nder-api.onrender.com";
             await axios.post(`${API_URL}/api/guild/${guildId}/settings`, settings, { withCredentials: true });
             setMessage("Settings saved successfully! ✨");
             setTimeout(() => setMessage(""), 3000);
@@ -55,7 +55,7 @@ const GeneralSettings = () => {
 
     const runCommand = async (command: string, data: any) => {
         try {
-            const API_URL = import.meta.env.VITE_API_URL || "https://ACTUAL_RENDER_URL";
+            const API_URL = import.meta.env.VITE_API_URL || "https://https://r3nder-api.onrender.com";
             await axios.post(`${API_URL}/api/guild/${guildId}/command`, { command, data }, { withCredentials: true });
             setMessage(`🚀 ${command.replace("_", " ")} executed!`);
 
