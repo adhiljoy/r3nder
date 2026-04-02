@@ -22,7 +22,7 @@ const LogViewer = () => {
 
     const fetchLogs = () => {
         setLoading(true);
-        axios.get("https://https://r3nder-api.onrender.com/api/admin/logs", {
+        axios.get("https://r3nder-api.onrender.com/api/admin/logs", {
             params: { page, search, type, guildId },
             withCredentials: true
         })

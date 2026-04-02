@@ -10,7 +10,7 @@ const Topbar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
     const [currentGuild, setCurrentGuild] = useState<any>(null);
 
     useEffect(() => {
-        axios.get("https://https://r3nder-api.onrender.com/api/guilds", { withCredentials: true })
+        axios.get("https://r3nder-api.onrender.com/api/guilds", { withCredentials: true })
             .then(res => {
                 const found = res.data.find((g: any) => g.id === guildId);
                 if (found) setCurrentGuild(found);

@@ -15,7 +15,7 @@ const UserProfile = () => {
     const [reminderTime, setReminderTime] = useState("");
 
     const fetchProfile = () => {
-        axios.get("https://https://r3nder-api.onrender.com/api/user/profile", { withCredentials: true })
+        axios.get("https://r3nder-api.onrender.com/api/user/profile", { withCredentials: true })
             .then(res => {
                 setProfile(res.data);
                 if (res.data.birthday) {
@@ -35,13 +35,13 @@ const UserProfile = () => {
 
     const updateBirthday = (e: React.FormEvent) => {
         e.preventDefault();
-        axios.post("https://https://r3nder-api.onrender.com/api/user/birthday", { birthday }, { withCredentials: true })
+        axios.post("https://r3nder-api.onrender.com/api/user/birthday", { birthday }, { withCredentials: true })
             .then(() => fetchProfile());
     };
 
     const addReminder = (e: React.FormEvent) => {
         e.preventDefault();
-        axios.post("https://https://r3nder-api.onrender.com/api/user/reminder", { message: reminderMessage, time: reminderTime }, { withCredentials: true })
+        axios.post("https://r3nder-api.onrender.com/api/user/reminder", { message: reminderMessage, time: reminderTime }, { withCredentials: true })
             .then(() => {
                 setReminderMessage("");
                 setReminderTime("");
@@ -50,7 +50,7 @@ const UserProfile = () => {
     };
 
     const deleteReminder = (id: string) => {
-        axios.delete(`https://https://r3nder-api.onrender.com/api/user/reminder/${id}`, { withCredentials: true })
+        axios.delete(`https://r3nder-api.onrender.com/api/user/reminder/${id}`, { withCredentials: true })
             .then(() => fetchProfile());
     };
 

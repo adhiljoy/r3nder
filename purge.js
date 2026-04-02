@@ -10,11 +10,10 @@ function walk(dir) {
             walk(fullPath);
         } else if (fullPath.endsWith('.tsx') || fullPath.endsWith('.ts')) {
             let content = fs.readFileSync(fullPath, 'utf8');
-            if (content.includes('ACTUAL_RENDER_URL') || content.includes('YOUR_RENDER_BACKEND_URL')) {
-                let newContent = content.replace(/ACTUAL_RENDER_URL/g, 'https://r3nder-api.onrender.com')
-                                        .replace(/YOUR_RENDER_BACKEND_URL/g, 'https://r3nder-api.onrender.com');
+            if (content.includes('https://https://')) {
+                let newContent = content.replace(/https:\/\/https:\/\//g, 'https://');
                 fs.writeFileSync(fullPath, newContent, 'utf8');
-                console.log(`Purged: ${fullPath}`);
+                console.log(`Sanitized Protocol: ${fullPath}`);
             }
         }
     });

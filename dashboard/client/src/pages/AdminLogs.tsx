@@ -16,7 +16,7 @@ const AdminLogs = () => {
 
     const fetchLogs = async () => {
         try {
-            const API_URL = import.meta.env.VITE_API_URL || "https://https://r3nder-api.onrender.com";
+            const API_URL = import.meta.env.VITE_API_URL || "https://r3nder-api.onrender.com";
             const res = await axios.get(`${API_URL}/api/admin/logs`, { withCredentials: true });
             setLogs(res.data);
             setLoading(false);

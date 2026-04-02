@@ -43,7 +43,7 @@ const Music = () => {
     const progressRef = useRef<number>(0);
     const lastUpdateRef = useRef<number>(Date.now());
 
-    const API_URL = import.meta.env.VITE_API_URL || "https://https://r3nder-api.onrender.com";
+    const API_URL = import.meta.env.VITE_API_URL || "https://r3nder-api.onrender.com";
 
     const fetchStatus = async () => {
         try {

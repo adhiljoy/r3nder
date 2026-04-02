@@ -9,7 +9,7 @@ const AIControl = () => {
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        const API_URL = import.meta.env.VITE_API_URL || "https://https://r3nder-api.onrender.com";
+        const API_URL = import.meta.env.VITE_API_URL || "https://r3nder-api.onrender.com";
         axios.get(`${API_URL}/api/guild/${guildId}/settings`, { withCredentials: true })
             .then(res => setSettings(res.data))
             .catch(console.error);
@@ -19,7 +19,7 @@ const AIControl = () => {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const API_URL = import.meta.env.VITE_API_URL || "https://https://r3nder-api.onrender.com";
+            const API_URL = import.meta.env.VITE_API_URL || "https://r3nder-api.onrender.com";
             await axios.post(`${API_URL}/api/guild/${guildId}/settings`, settings, { withCredentials: true });
         } catch (error) {
 

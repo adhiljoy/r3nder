@@ -17,7 +17,7 @@ const ServerAnalytics = () => {
     const [loading, setLoading] = useState(true);
 
     const fetchAnalytics = () => {
-        const API_URL = import.meta.env.VITE_API_URL || "https://https://r3nder-api.onrender.com";
+        const API_URL = import.meta.env.VITE_API_URL || "https://r3nder-api.onrender.com";
         axios.get(`${API_URL}/api/guild/${guildId}/analytics`, { withCredentials: true })
             .then(res => {
                 setData(res.data);
