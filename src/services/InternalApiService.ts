@@ -88,7 +88,7 @@ export class InternalApiService {
         });
 
         this.app.post("/guild/:guildId/leave", async (req: Request, res: Response) => {
-            const { guildId } = req.params;
+            const guildId = req.params.guildId as string;
             const guild = this.client.guilds.cache.get(guildId);
             if (guild) {
                 await guild.leave();
@@ -99,7 +99,8 @@ export class InternalApiService {
         });
 
         this.app.get("/risk/:guildId/:userId", async (req: Request, res: Response) => {
-            const { guildId, userId } = req.params;
+            const guildId = req.params.guildId as string;
+            const userId = req.params.userId as string;
             try {
                 const analysis = await this.client.risk.analyzeUser(userId as string, guildId as string);
                 res.json(analysis);
