@@ -23,9 +23,10 @@ export const startDashboard = (client: R3NDERClient) => {
 
 // CORS - Essential for React Dashboard
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
+    origin: ["http://localhost:3000", "http://localhost:5173", "https://r3nder-x18m.vercel.app"],
     credentials: true
 }));
+
 
 
 app.use(express.json());
