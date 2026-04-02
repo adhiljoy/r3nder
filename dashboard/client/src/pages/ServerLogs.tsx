@@ -27,7 +27,8 @@ const ServerLogs = () => {
 
     const fetchLogs = () => {
         setLoading(true);
-        axios.get(`http://localhost:3001/api/guild/${guildId}/logs`, {
+        const API_URL = import.meta.env.VITE_API_URL || "https://api.guildflow.app";
+        axios.get(`${API_URL}/api/guild/${guildId}/logs`, {
             params: { page, search, type },
             withCredentials: true
         })
@@ -43,13 +44,16 @@ const ServerLogs = () => {
         });
     };
 
+
     useEffect(() => {
         fetchLogs();
 
         // Socket.IO Real-time Logic
-        const socket = io("http://localhost:3001", {
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+        const socket = io(API_URL, {
             query: { guildId }
         });
+
 
         socket.on("connect", () => setIsLive(true));
         socket.on("disconnect", () => setIsLive(false));

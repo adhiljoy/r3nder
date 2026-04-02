@@ -9,7 +9,8 @@ const AIControl = () => {
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        axios.get(`http://localhost:3001/api/guild/${guildId}/settings`, { withCredentials: true })
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+        axios.get(`${API_URL}/api/guild/${guildId}/settings`, { withCredentials: true })
             .then(res => setSettings(res.data))
             .catch(console.error);
     }, [guildId]);
@@ -17,8 +18,10 @@ const AIControl = () => {
     const handleSave = async () => {
         setSaving(true);
         try {
-            await axios.post(`http://localhost:3001/api/guild/${guildId}/settings`, settings, { withCredentials: true });
+            const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+            await axios.post(`${API_URL}/api/guild/${guildId}/settings`, settings, { withCredentials: true });
         } catch (error) {
+
             alert("Error saving AI settings.");
         } finally {
             setSaving(false);

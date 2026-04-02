@@ -11,8 +11,8 @@ const AdminOverview = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.get("http://localhost:3001/api/admin/analytics/overview", { withCredentials: true })
-
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+        axios.get(`${API_URL}/api/admin/analytics/overview`, { withCredentials: true })
             .then(res => {
                 setStats(res.data);
                 setLoading(false);
@@ -22,6 +22,7 @@ const AdminOverview = () => {
                 setLoading(false);
             });
     }, []);
+
 
     if (loading) return <div className="animate-pulse text-white/50">Loading Admin Stats...</div>;
     if (!stats) return <div className="text-red-400">Failed to load admin dashboard. Restricted Access.</div>;

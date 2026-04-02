@@ -7,8 +7,10 @@ const Login = () => {
     if (!loading && user) return <Navigate to="/portal" />;
 
     const handleLogin = () => {
-        window.location.href = "http://localhost:3001/auth/login";
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+        window.location.href = `${API_URL}/auth/discord`;
     };
+
 
     return (
         <div className="h-screen w-screen flex items-center justify-center bg-background px-4">

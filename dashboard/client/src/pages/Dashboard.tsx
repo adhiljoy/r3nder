@@ -33,7 +33,8 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const res = await axios.get(`http://localhost:3001/api/guild/${guildId}/settings`, { withCredentials: true });
+                const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+                const res = await axios.get(`${API_URL}/api/guild/${guildId}/settings`, { withCredentials: true });
                 setSettings(res.data);
                 setLoading(false);
             } catch (err) {
@@ -46,8 +47,10 @@ const Dashboard = () => {
     const saveSettings = async () => {
         setSaving(true);
         try {
-            await axios.post(`http://localhost:3001/api/guild/${guildId}/settings`, settings, { withCredentials: true });
+            const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+            await axios.post(`${API_URL}/api/guild/${guildId}/settings`, settings, { withCredentials: true });
             setMessage("Settings synced successfully! 🌌");
+
             setTimeout(() => setMessage(""), 3000);
         } catch (err) {
             setMessage("❌ Failed to sync settings.");

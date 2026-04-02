@@ -8,7 +8,8 @@ const Subscription = () => {
     const [upgrading, setUpgrading] = useState<string | null>(null);
 
     useEffect(() => {
-        axios.get("http://localhost:3001/api/me", { withCredentials: true })
+        const API_URL = import.meta.env.VITE_API_URL || "https://api.r3nder.ai";
+        axios.get(`${API_URL}/api/me`, { withCredentials: true })
             .then(res => setCurrentTier(res.data.premiumTier || "free"))
             .catch(console.error)
             .finally(() => setLoading(false));
@@ -17,8 +18,10 @@ const Subscription = () => {
     const handleUpgrade = async (tier: string) => {
         setUpgrading(tier);
         try {
-            await axios.post("http://localhost:3001/api/premium/upgrade", { tier }, { withCredentials: true });
+            const API_URL = import.meta.env.VITE_API_URL || "https://api.r3nder.ai";
+            await axios.post(`${API_URL}/api/premium/upgrade`, { tier }, { withCredentials: true });
             setCurrentTier(tier);
+
             alert(`Level up! You are now a ${tier.toUpperCase()} member.`);
         } catch (error) {
             alert("Upgrade failed. Please try again.");

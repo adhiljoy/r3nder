@@ -17,7 +17,8 @@ const ServerAnalytics = () => {
     const [loading, setLoading] = useState(true);
 
     const fetchAnalytics = () => {
-        axios.get(`http://localhost:3001/api/guild/${guildId}/analytics`, { withCredentials: true })
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+        axios.get(`${API_URL}/api/guild/${guildId}/analytics`, { withCredentials: true })
             .then(res => {
                 setData(res.data);
                 setLoading(false);
@@ -27,6 +28,7 @@ const ServerAnalytics = () => {
                 setLoading(false);
             });
     };
+
 
     useEffect(() => {
         fetchAnalytics();
