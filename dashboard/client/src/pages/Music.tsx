@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
     Play, Pause, SkipForward, SkipBack, Volume2, Music as MusicIcon, 
     ListMusic, Shuffle, Repeat, Activity, Radio, Cpu, ShieldAlert,
-    ExternalLink, RefreshCw, Zap, Disc
+    RefreshCw, Zap, Disc
 } from "lucide-react";
 
 interface MusicStatus {
@@ -35,7 +35,6 @@ const Music = () => {
     const [status, setStatus] = useState<MusicStatus | null>(null);
     const [loading, setLoading] = useState(true);
     const [smoothProgress, setSmoothProgress] = useState(0);
-    const [isHovering, setIsHovering] = useState(false);
     
     const progressRef = useRef<number>(0);
     const lastUpdateRef = useRef<number>(Date.now());
@@ -249,11 +248,9 @@ const Music = () => {
                                         </div>
                                         <div 
                                             className="h-3 md:h-4 bg-white/5 rounded-2xl p-1 relative overflow-hidden border border-white/5 group/bar cursor-pointer"
-                                            onMouseEnter={() => setIsHovering(true)}
-                                            onMouseLeave={() => setIsHovering(false)}
                                         >
                                             <motion.div 
-                                                className="h-full bg-linear-to-r from-primary via-premium to-accent bg-[length:400%_100%] animate-gradient rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.3)] relative"
+                                                className="h-full bg-linear-to-r from-primary via-premium to-accent bg-size-[400%_100%] animate-gradient rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.3)] relative"
                                                 initial={false}
                                                 animate={{ width: `${(smoothProgress / (track?.totalSeconds || 1)) * 100}%` }}
                                                 transition={{ type: "tween", ease: "linear", duration: 0.1 }}
@@ -286,7 +283,7 @@ const Music = () => {
                                         whileHover={{ scale: 1.1 }}
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() => handleControl(paused ? "resume" : "pause")}
-                                        className="w-24 h-24 rounded-[2rem] bg-white text-black flex items-center justify-center shadow-2xl shadow-primary/30 transition-all group/play"
+                                        className="w-24 h-24 rounded-4xl bg-white text-black flex items-center justify-center shadow-2xl shadow-primary/30 transition-all group/play"
                                     >
                                         {paused ? <Play fill="currentColor" size={40} className="ml-1" /> : <Pause fill="currentColor" size={40} />}
                                     </motion.button>
@@ -295,7 +292,7 @@ const Music = () => {
                                     <motion.button whileHover={{ rotate: -15 }} onClick={() => handleControl("stop")} className="text-white/20 hover:text-red-500 transition-colors"><Repeat size={24} /></motion.button>
                                 </div>
 
-                                <div className="flex items-center gap-6 bg-black/40 px-8 py-5 rounded-[2rem] border border-white/5 w-full lg:w-72 group/vol backdrop-blur-xl">
+                                <div className="flex items-center gap-6 bg-black/40 px-8 py-5 rounded-4xl border border-white/5 w-full lg:w-72 group/vol backdrop-blur-xl">
                                     <Volume2 className="text-white/20 group-hover/vol:text-primary transition-colors" size={20} />
                                     <input 
                                         type="range"
@@ -333,7 +330,7 @@ const Music = () => {
                     {/* Secondary Core - Queue */}
                     <div className="xl:col-span-4 flex flex-col gap-6">
                         <div className="glass-card flex flex-col h-full min-h-[640px] relative overflow-hidden">
-                            <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                            <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/2">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center">
                                         <ListMusic className="text-primary" size={24} />
@@ -353,7 +350,7 @@ const Music = () => {
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: i * 0.05 }}
                                         key={i} 
-                                        className="p-5 rounded-2.5xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all flex items-center gap-5 group"
+                                        className="p-5 rounded-2.5xl bg-white/2 border border-white/5 hover:bg-white/5 hover:border-primary/20 transition-all flex items-center gap-5 group"
                                     >
                                         <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center shrink-0 group-hover:border-primary/50 group-hover:bg-primary/10 transition-all">
                                             <span className="text-[10px] font-black text-white/20 group-hover:text-primary transition-colors">/0{i+1}</span>
@@ -383,7 +380,7 @@ const Music = () => {
                                 )}
                             </div>
 
-                            <div className="p-8 bg-white/[0.02] border-t border-white/5">
+                            <div className="p-8 bg-white/2 border-t border-white/5">
                                 <motion.button 
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
