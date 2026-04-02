@@ -1,9 +1,8 @@
 import express from "express";
 import session from "express-session";
-import passport from "passport";
-import { Strategy as DiscordStrategy } from "passport-discord";
 import MongoStore from "connect-mongo";
 import mongoose from "mongoose";
+
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
@@ -28,7 +27,8 @@ const io = new Server(httpServer, {
 });
 
 
-import { LogType, LogPriority } from "@database/Log";
+import { Log, LogType, LogPriority } from "@database/Log";
+
 
 const BOT_API_URL = "http://localhost:3002";
 
@@ -88,194 +88,29 @@ app.use(session({
     }
 }));
 
-app.use(passport.initialize());
-app.use(passport.session());
-
-// Passport Discord Strategy
-passport.use(new DiscordStrategy({
-    clientID: process.env.CLIENT_ID!,
-    clientSecret: process.env.CLIENT_SECRET!,
-    callbackURL: process.env.CALLBACK_URL!,
-    scope: ["identify", "guilds", "email"]
-}, (accessToken, refreshToken, profile, done) => {
-    return done(null, profile);
-}));
-
-
-console.log(`[Dashboard-Auth] Client ID: ${process.env.CLIENT_ID}`);
-console.log(`[Dashboard-Auth] Redirect URI: ${process.env.CALLBACK_URL}`);
-
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((user: any, done) => done(null, user));
-
-// Bit-perfect Meta Hardcoding
-const pkg = { version: "1.0.0" };
-
-// Middleware to check authentication
+import authRoutes from "../../src/routes/auth.routes";
 import { User } from "@database/User";
 
 const isAuth = (req: any, res: any, next: any) => {
-    if (req.user) return next();
+    if ((req.session as any).user) return next();
     res.status(401).json({ message: "Unauthorized" });
-};
-
-const checkPremium = (tier: string) => async (req: any, res: any, next: any) => {
-    const userData = await User.findOne({ userId: (req.user as any).id });
-    if (!userData) return res.status(404).json({ message: "User not found" });
-
-    const tiers = ["free", "pro", "ultra"];
-    if (tiers.indexOf(userData.premiumTier) >= tiers.indexOf(tier)) {
-        return next();
-    }
-    res.status(403).json({ message: `Requires ${tier} subscription` });
 };
 
 const checkAdmin = (req: any, res: any, next: any) => {
     const adminIds = (process.env.ADMIN_IDS || "").split(",");
-    const adminEmail = "adhiljoyappu@gmail.com".toLowerCase();
-    const adminUsername = "renderexe".toLowerCase();
-
-    const user = req.user as any;
-    const isAdmin = user && (
-        adminIds.includes(user.id) || 
-        user.email?.toLowerCase() === adminEmail || 
-        user.username?.toLowerCase() === adminUsername
-    );
-
-    if (isAdmin) return next();
-
-
-    // Log unauthorized attempt
-    logEvent({
-        type: LogType.SYSTEM,
-        priority: LogPriority.CRITICAL,
-        action: "UNAUTHORIZED_ADMIN_ACCESS",
-        content: `Unauthorized access attempt to /admin by ${user?.username || "Unknown"} (${user?.id || "N/A"})`,
-        userId: user?.id,
-        metadata: { ip: req.ip, userAgent: req.headers["user-agent"] }
-    });
-
+    const user = (req.session as any).user;
+    if (user && adminIds.includes(user.id)) return next();
     res.status(403).json({ message: "Admin access denied" });
 };
 
-
-import { Log } from "@database/Log";
-import { MusicLog, MusicEventType } from "@database/MusicLog";
-
-
-// ─── Music Analytics Routes ────────────────────────────────────────────────
-/**
- * GET /api/music/:guildId/logs
- * Full music analytics for a guild: recent plays, most played, active users, skip rate
- */
-app.get("/api/music/:guildId/logs", isAuth, async (req: any, res: any) => {
-    const { guildId } = req.params;
-    const limit = parseInt(req.query.limit as string) || 50;
-
-    try {
-        // Recent play events
-        const recentPlays = await MusicLog.find({ guildId, event: MusicEventType.MUSIC_PLAY })
-            .sort({ timestamp: -1 })
-            .limit(limit)
-            .lean();
-
-        // Most played songs (aggregate by trackTitle)
-        const mostPlayed = await MusicLog.aggregate([
-            { $match: { guildId, event: MusicEventType.MUSIC_PLAY } },
-            { $group: { _id: "$trackTitle", count: { $sum: 1 }, trackUrl: { $first: "$trackUrl" }, trackAuthor: { $first: "$trackAuthor" }, source: { $first: "$source" } } },
-            { $sort: { count: -1 } },
-            { $limit: 10 },
-        ]);
-
-        // Most active users
-        const activeUsers = await MusicLog.aggregate([
-            { $match: { guildId, event: MusicEventType.QUEUE_ADD } },
-            { $group: { _id: "$userId", username: { $first: "$username" }, count: { $sum: 1 } } },
-            { $sort: { count: -1 } },
-            { $limit: 10 },
-        ]);
-
-        // Skip rate: skips / plays
-        const totalPlays = await MusicLog.countDocuments({ guildId, event: MusicEventType.MUSIC_PLAY });
-        const totalSkips = await MusicLog.countDocuments({ guildId, event: MusicEventType.MUSIC_SKIP });
-        const skipRate   = totalPlays > 0 ? ((totalSkips / totalPlays) * 100).toFixed(1) : "0.0";
-
-        // Volume change history
-        const volumeHistory = await MusicLog.find({ guildId, event: MusicEventType.VOLUME_CHANGE })
-            .sort({ timestamp: -1 })
-            .limit(20)
-            .lean();
-
-        res.json({
-            guildId,
-            summary: {
-                totalPlays,
-                totalSkips,
-                skipRate: `${skipRate}%`,
-                totalQueued: await MusicLog.countDocuments({ guildId, event: MusicEventType.QUEUE_ADD }),
-            },
-            recentPlays,
-            mostPlayed: mostPlayed.map((m: any) => ({
-                title:      m._id,
-                plays:      m.count,
-                url:        m.trackUrl,
-                author:     m.trackAuthor,
-                source:     m.source,
-            })),
-            activeUsers: activeUsers.map((u: any) => ({
-                userId:   u._id,
-                username: u.username,
-                tracks:   u.count,
-            })),
-            volumeHistory,
-        });
-    } catch (err: any) {
-        res.status(500).json({ error: "Music analytics query failed", message: err.message });
-    }
-});
-
-
-// Auth Routes
-app.post("/api/premium/upgrade", isAuth, async (req, res) => {
-    const { tier } = req.body;
-    try {
-        await User.findOneAndUpdate(
-            { userId: (req.user as any).id }, 
-            { premiumTier: tier }, 
-            { upsert: true }
-        );
-        res.json({ success: true, tier });
-    } catch (error) {
-        res.status(500).json({ success: false });
-    }
-});
-
-app.get("/auth/login", passport.authenticate("discord"));
-app.get("/auth/callback", passport.authenticate("discord", {
-    failureRedirect: "/auth/login",
-}), (req: any, res) => {
-    const adminIds = (process.env.ADMIN_IDS || "").split(",");
-    const adminEmail = "adhiljoyappu@gmail.com";
-    const adminUsername = "renderexe";
-
-    const isAdmin = req.user && (
-        adminIds.includes(req.user.id) || 
-        req.user.email === adminEmail || 
-        req.user.username === adminUsername
-    );
-
-    if (isAdmin) {
-        res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}/core/overview`);
-    } else {
-        res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}/portal`);
-    }
-
-});
-
-
+// ─── AUTH ROUTES ───────────────────────────────────────────────────
+app.use("/", authRoutes);
 
 app.get("/api/auth/logout", (req: any, res) => {
-    req.logout(() => res.json({ message: "Logged out" }));
+    req.session.destroy(() => {
+        res.clearCookie("connect.sid");
+        res.json({ message: "Logged out" });
+    });
 });
 
 // Admin API Router
@@ -284,17 +119,10 @@ app.use("/api/admin", isAuth, checkAdmin, adminRouter);
 // Profile & Identity Routes
 app.get("/api/user", isAuth, (req: any, res) => {
     const adminIds = (process.env.ADMIN_IDS || "").split(",");
-    const adminEmail = "adhiljoyappu@gmail.com".toLowerCase();
-    const adminUsername = "renderexe".toLowerCase();
-
-    const isAdmin = req.user && (
-        adminIds.includes(req.user.id) || 
-        req.user.email?.toLowerCase() === adminEmail || 
-        req.user.username?.toLowerCase() === adminUsername
-    );
-    res.json({ ...req.user, isAdmin, clientId: process.env.CLIENT_ID });
+    const user = (req.session as any).user;
+    const isAdmin = user && adminIds.includes(user.id);
+    res.json({ ...user, isAdmin, clientId: process.env.CLIENT_ID });
 });
-
 
 
 

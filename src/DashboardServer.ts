@@ -47,6 +47,10 @@ app.use(session({
     cookie: { maxAge: 60000 * 60 * 24 * 7 }
 }));
 
+import authRoutes from "./routes/auth.routes";
+
+// ... (existing imports)
+
 const isAuth = (req: any, res: any, next: any) => {
     if ((req.session as any).user) return next();
     res.status(401).json({ message: "Unauthorized" });
@@ -58,9 +62,10 @@ app.use("/", authRoutes);
 app.get("/api/user", isAuth, (req: any, res) => {
     const adminIds = (process.env.ADMIN_IDS || "").split(",");
     const user = (req.session as any).user;
-    const isAdmin = adminIds.includes(user.id);
+    const isAdmin = user && adminIds.includes(user.id);
     res.json({ ...user, isAdmin, clientId: process.env.CLIENT_ID });
 });
+
 
 // ─── CORE PRESENCE LOGIC (THE USER'S GOAL) ─────────────────────────
 app.get("/api/guilds", isAuth, async (req: any, res) => {
