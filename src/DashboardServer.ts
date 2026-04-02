@@ -237,9 +237,13 @@ app.get("/api/admin/logs", isAuth, async (req, res) => {
 // MONOLITHIC FINALITY: Serving Dashboard Assets Directly
 app.use(express.static(path.join(__dirname, "../dashboard/client/dist")));
 
-app.get("(.*)", (req, res) => {
+app.use((req, res) => {
     res.sendFile(path.join(__dirname, "../dashboard/client/dist/index.html"));
 });
+
+
+
+
 
 
     app.listen(port, () => {

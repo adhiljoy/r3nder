@@ -1,11 +1,13 @@
+import * as dns from "node:dns";
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
 import express from "express";
 import session from "express-session";
 import MongoStore from "connect-mongo";
 import mongoose from "mongoose";
 
-import * as dns from "node:dns";
-
 import cors from "cors";
+
 import dotenv from "dotenv";
 import path from "path";
 import { DatabaseUtils } from "@utils/database";
