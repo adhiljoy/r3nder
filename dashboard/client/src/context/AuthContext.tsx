@@ -23,9 +23,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const logout = () => {
         const API_URL = import.meta.env.VITE_API_URL || "https://r3nder-api.onrender.com";
-        axios.get(`${API_URL}/api/auth/logout`, { withCredentials: true })
+        axios.get(`${API_URL}/auth/logout`, { withCredentials: true })
             .then(() => setUser(null));
     };
+
 
 
     return (

@@ -47,23 +47,8 @@ app.use(session({
     cookie: { maxAge: 60000 * 60 * 24 * 7 }
 }));
 
-app.use(passport.initialize());
-app.use(passport.session());
-
-passport.use(new DiscordStrategy({
-    clientID: process.env.CLIENT_ID!,
-    clientSecret: process.env.CLIENT_SECRET!,
-    callbackURL: process.env.CALLBACK_URL!,
-    scope: ["identify", "guilds", "email"]
-}, (accessToken, refreshToken, profile, done) => {
-    return done(null, profile);
-}));
-
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((user: any, done) => done(null, user));
-
 const isAuth = (req: any, res: any, next: any) => {
-    if (req.user) return next();
+    if ((req.session as any).user) return next();
     res.status(401).json({ message: "Unauthorized" });
 };
 
@@ -72,16 +57,18 @@ app.use("/", authRoutes);
 
 app.get("/api/user", isAuth, (req: any, res) => {
     const adminIds = (process.env.ADMIN_IDS || "").split(",");
-    const isAdmin = adminIds.includes(req.user.id);
-    res.json({ ...req.user, isAdmin, clientId: process.env.CLIENT_ID });
+    const user = (req.session as any).user;
+    const isAdmin = adminIds.includes(user.id);
+    res.json({ ...user, isAdmin, clientId: process.env.CLIENT_ID });
 });
 
 // ─── CORE PRESENCE LOGIC (THE USER'S GOAL) ─────────────────────────
 app.get("/api/guilds", isAuth, async (req: any, res) => {
     try {
-        const userGuilds = req.user.guilds || [];
+        const user = (req.session as any).user;
+        const userGuilds = user.guilds || [];
         const adminIds = (process.env.ADMIN_IDS || "").split(",");
-        const isAdmin = adminIds.includes(req.user.id);
+        const isAdmin = adminIds.includes(user.id);
 
         let finalGuilds = [];
 
