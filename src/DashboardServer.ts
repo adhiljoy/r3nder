@@ -23,9 +23,10 @@ export const startDashboard = (client: R3NDERClient) => {
 
 // CORS - Essential for React Dashboard
 app.use(cors({
-    origin: FRONTEND_URL,
+    origin: process.env.FRONTEND_URL,
     credentials: true
 }));
+
 
 app.use(express.json());
 app.use(cookieParser());
