@@ -4,6 +4,8 @@ import passport from "passport";
 import { Strategy as DiscordStrategy } from "passport-discord";
 import MongoStore from "connect-mongo";
 import cors from "cors";
+import cookieParser from "cookie-parser";
+
 import dotenv from "dotenv";
 import path from "path";
 import { R3NDERClient } from "@client/R3nderClient";
