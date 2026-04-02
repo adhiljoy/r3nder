@@ -5,8 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
     Play, Pause, SkipForward, SkipBack, Volume2, Music as MusicIcon, 
     ListMusic, Shuffle, Repeat, Activity, Radio, Cpu, ShieldAlert,
-    RefreshCw, Zap, Disc
+    RefreshCw, Zap, Disc, History
 } from "lucide-react";
+
+
 
 interface MusicStatus {
     playing: boolean;
@@ -35,6 +37,8 @@ const Music = () => {
     const [status, setStatus] = useState<MusicStatus | null>(null);
     const [loading, setLoading] = useState(true);
     const [smoothProgress, setSmoothProgress] = useState(0);
+    const [logs, setLogs] = useState<any[]>([]);
+
     
     const progressRef = useRef<number>(0);
     const lastUpdateRef = useRef<number>(Date.now());
@@ -57,10 +61,23 @@ const Music = () => {
         }
     };
 
-    // Live Polking (3s)
+    const fetchMusicLogs = async () => {
+        try {
+            const res = await axios.get(`http://localhost:3001/api/guild/${guildId}/music/logs`, { withCredentials: true });
+            setLogs(res.data);
+        } catch (error) {
+            console.error("Logs failed:", error);
+        }
+    };
+
+    // Live Polling (3s)
     useEffect(() => {
         fetchStatus();
-        const interval = setInterval(fetchStatus, 3000);
+        fetchMusicLogs();
+        const interval = setInterval(() => {
+            fetchStatus();
+            fetchMusicLogs();
+        }, 3000);
         return () => clearInterval(interval);
     }, [guildId]);
 
@@ -394,6 +411,87 @@ const Music = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Session History - Music Logs */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="glass-card p-10 space-y-8"
+                >
+                    <div className="flex items-center justify-between border-b border-white/5 pb-8">
+                        <div className="flex items-center gap-5">
+                            <div className="w-14 h-14 rounded-2.5xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                                <History className="text-primary" size={28} />
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-black italic tracking-tight">Sonic Audit Trail</h3>
+                                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">Historical Sequence Monitoring</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="text-[10px] font-black uppercase text-white/20 tracking-[0.2em] border-b border-white/5">
+                                <tr>
+                                    <th className="px-6 py-4">Status</th>
+                                    <th className="px-6 py-4">Track ID & Title</th>
+                                    <th className="px-6 py-4">Execution Source</th>
+                                    <th className="px-6 py-4">Initiator (Requester)</th>
+                                    <th className="px-6 py-4 text-right">Sequence Time</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/2">
+                                {logs.map((log) => (
+                                    <tr key={log._id} className="hover:bg-white/2 transition-colors">
+                                        <td className="px-6 py-6">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-white/10" />
+                                                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">{log.event.replace("MUSIC_", "")}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-6 max-w-sm">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 overflow-hidden flex items-center justify-center shrink-0">
+                                                    <MusicIcon size={16} className="text-white/20" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-bold text-white truncate leading-none mb-1.5">{log.trackTitle}</p>
+                                                    <p className="text-[9px] font-black text-white/10 uppercase tracking-tighter truncate">{log.trackUrl || 'METADATA_MISSING'}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-6">
+                                            <div className="px-3 py-1 bg-white/5 border border-white/5 rounded-lg inline-flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 bg-accent rounded-full" />
+                                                <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">{log.source || "Weblink"}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-6">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                                                    <span className="text-[9px] font-black text-primary">{log.username?.charAt(0).toUpperCase() || 'U'}</span>
+                                                </div>
+                                                <span className="text-sm font-bold text-white/60">{log.username}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-6 text-right">
+                                            <div className="text-xs font-bold text-white/40 tracking-tight">{new Date(log.timestamp).toLocaleTimeString()}</div>
+                                            <div className="text-[9px] font-black text-white/10 uppercase tracking-tighter mt-1">{new Date(log.timestamp).toLocaleDateString()}</div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {logs.length === 0 && (
+                                    <tr>
+                                        <td colSpan={5} className="py-20 text-center">
+                                            <p className="text-[10px] font-black uppercase text-white/10 tracking-[0.3em]">No Recorded Operations Detected In Sequence Buffer</p>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </motion.div>
             </div>
 
             {/* Custom Scrollbar Styles */}

@@ -13,6 +13,7 @@ import { VoiceBasedChannel } from "discord.js";
 
 export interface Track {
     name: string;
+    author: string;
     url: string;
     thumbnail?: string;
     durationRaw: string;

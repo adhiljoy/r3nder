@@ -11,7 +11,8 @@ const AdminOverview = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.get("http://localhost:3001/api/admin/overview", { withCredentials: true })
+        axios.get("http://localhost:3001/api/admin/analytics/overview", { withCredentials: true })
+
             .then(res => {
                 setStats(res.data);
                 setLoading(false);

@@ -2,9 +2,9 @@ import { useAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
 
 const Login = () => {
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
 
-    if (user) return <Navigate to="/guilds" />;
+    if (!loading && user) return <Navigate to="/portal" />;
 
     const handleLogin = () => {
         window.location.href = "http://localhost:3001/auth/login";

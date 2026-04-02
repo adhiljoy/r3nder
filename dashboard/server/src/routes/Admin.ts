@@ -1,25 +1,19 @@
 import express from "express";
 import axios from "axios";
 import os from "os";
-import pkg from "../../../package.json";
-import { Log, LogType } from "../../shared/models/Log";
-import { Guild } from "../../shared/models/Guild";
-import { User } from "../../shared/models/User";
-import { Analytics } from "../../shared/models/Analytics";
+
+// Bit-perfect Meta Hardcoding
+const pkg = { version: "1.0.0" };
+import { Log, LogType } from "@database/Log";
+import { Guild } from "@database/Guild";
+import { User } from "@database/User";
+import { Analytics } from "@database/Analytics";
 
 const router = express.Router();
 const BOT_API_URL = "http://localhost:3002";
 
-// Middleware to check Admin permission
-const checkAdmin = (req: any, res: any, next: any) => {
-    const adminIds = (process.env.ADMIN_IDS || "").split(",");
-    if (req.user && adminIds.includes(req.user.id)) {
-        return next();
-    }
-    res.status(403).json({ message: "Admin access denied" });
-};
+// router.use(checkAdmin) is removed as it's handled in server.ts
 
-router.use(checkAdmin);
 
 /**
  * @route   GET /api/admin/system/pulse
@@ -94,20 +88,17 @@ router.get("/analytics/overview", async (req, res) => {
         ]);
 
         res.json({
-            counters: {
-                logs: totalLogs,
-                guilds: totalGuilds,
-                users: totalUsers
-            },
-            distribution: {
-                commands: commandsByType.map(c => ({ name: c._id, count: c.count })),
-                topGuilds
-            }
+            totalLogs,
+            totalGuilds,
+            totalUsers,
+            statsByType: commandsByType.map((c: any) => ({ _id: c._id, count: c.count })),
+            topGuilds
         });
     } catch (error) {
         res.status(500).json({ message: "Analytics processing failure" });
     }
 });
+
 
 /**
  * @route   GET /api/admin/guilds
@@ -126,6 +117,49 @@ router.get("/guilds", async (req, res) => {
  * @route   POST /api/admin/guild/:id/leave
  * @desc    Force the bot to exit a server
  */
+/**
+ * @route   GET /api/admin/logs
+ * @desc    Paginated forensic log explorer
+ */
+router.get("/logs", async (req, res) => {
+    try {
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = 50;
+        const skip = (page - 1) * limit;
+
+        const { search, type, guildId } = req.query;
+        let query: any = {};
+
+        if (type) query.type = type;
+        if (guildId) query.guildId = guildId;
+        if (search) {
+            query.$or = [
+                { content: { $regex: search, $options: "i" } },
+                { action: { $regex: search, $options: "i" } }
+            ];
+        }
+
+        const logs = await Log.find(query)
+            .sort({ timestamp: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await Log.countDocuments(query);
+
+        res.json({
+            logs,
+            total,
+            pages: Math.ceil(total / limit)
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Log retrieval failure" });
+    }
+});
+
+/**
+ * @route   POST /api/admin/guild/:id/leave
+ * @desc    Force the bot to exit a server
+ */
 router.post("/guild/:id/leave", async (req, res) => {
     try {
         await axios.post(`${BOT_API_URL}/guild/${req.params.id}/leave`);
@@ -134,5 +168,6 @@ router.post("/guild/:id/leave", async (req, res) => {
         res.status(500).json({ message: "Force-quit request failed" });
     }
 });
+
 
 export default router;

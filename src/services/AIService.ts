@@ -38,10 +38,50 @@ export class AIService {
         }
     }
 
+    // ── Creator Identity Detection ─────────────────────────────────────────────
+    private _getIdentityResponse(prompt: string): string | null {
+        const q = prompt.toLowerCase().trim();
+
+        const creatorTriggers = [
+            "who created you", "who made you", "who built you", "who developed you",
+            "who is your developer", "who is your creator", "who owns this bot",
+            "who owns you", "who is your owner", "who made r3nder", "who created r3nder"
+        ];
+
+        const purposeTriggers = [
+            "what are you for", "what is your purpose", "what can you do",
+            "what do you do", "tell me about yourself", "what is r3nder",
+            "what are your features", "what are your capabilities"
+        ];
+
+        const contactTriggers = [
+            "how can i contact", "how do i contact", "contact info",
+            "contact you", "email", "reach out", "support email", "get support"
+        ];
+
+        if (creatorTriggers.some(t => q.includes(t))) {
+            return "I'm **R3NDER** — crafted by **Adhil Joy** to deliver premium AI-powered server management, automation, and music experiences on Discord. For inquiries or collaboration: `renderexe00@gmail.com`";
+        }
+
+        if (purposeTriggers.some(t => q.includes(t))) {
+            return "I'm **R3NDER**, your all-in-one Discord intelligence engine. Here's what I bring to the table:\n\n🤖 **AI Chat** — Contextual conversations with memory\n🛡️ **Auto-Moderation** — Threat detection & member protection\n🎵 **Music System** — SoundCloud-first, multi-source playback\n📊 **Analytics Dashboard** — Real-time server insights\n\nBuilt by **Adhil Joy** · `renderexe00@gmail.com`";
+        }
+
+        if (contactTriggers.some(t => q.includes(t))) {
+            return "For support, feedback, or business inquiries, reach the creator of R3NDER directly:\n\n👤 **Adhil Joy**\n📧 `renderexe00@gmail.com`";
+        }
+
+        return null;
+    }
+
     public async chat(userId: string, guildId: string, channelId: string, prompt: string, nickname?: string): Promise<string> {
         if (!prompt || prompt.trim().length === 0) {
             return "Please provide a valid prompt.";
         }
+
+        // ── Priority: Identity / Creator Questions ─────────────────────────────
+        const identityResponse = this._getIdentityResponse(prompt);
+        if (identityResponse) return identityResponse;
 
         try {
             // Fetch User and Guild data for Personality
@@ -53,7 +93,8 @@ export class AIService {
 
             // Groq Free Model Assignment
             const model = "llama-3.1-8b-instant";
-            let memoryLimit = 15;
+            let memoryLimit = 10;
+
 
             // Memory scaling (still using tiers for customization)
             if (tier === "pro") memoryLimit = 30;

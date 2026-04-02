@@ -1,6 +1,7 @@
 import { Client, TextChannel, EmbedBuilder, ColorResolvable } from "discord.js";
 import axios from "axios";
 import { Log, LogPriority, LogType } from "@database/Log";
+import { MusicLog, MusicEventType, IMusicLog } from "@database/MusicLog";
 import { Guild } from "@database/Guild";
 
 export class LogService {
@@ -74,6 +75,50 @@ export class LogService {
     public critical(action: string, content: string, guildId?: string, userId?: string, metadata?: any) {
         this.log({ type: LogType.SYSTEM, priority: LogPriority.CRITICAL, action, content, guildId, userId, metadata });
     }
+
+    /**
+     * Specialized music event logger — writes to `music_logs` collection
+     */
+    public async logMusic(data: {
+        guildId:     string;
+        userId:      string;
+        username:    string;
+        event:       MusicEventType;
+        trackTitle:  string;
+        trackUrl?:   string;
+        trackAuthor?: string;
+        source?:     string;
+        volume?:     number;
+        duration?:   number;
+    }): Promise<void> {
+        try {
+            // Write to dedicated music_logs collection (immediate, not batched)
+            await MusicLog.create({
+                ...data,
+                trackUrl: data.trackUrl ?? "",
+                timestamp: new Date(),
+            });
+
+            // Also enqueue to general log stream for dashboard real-time feed
+            this.log({
+                type: LogType.MUSIC,
+                priority: LogPriority.INFO,
+                action: data.event,
+                content: `[${data.event}] ${data.trackTitle} — by ${data.username}`,
+                guildId: data.guildId,
+                userId:  data.userId,
+                metadata: {
+                    trackUrl:    data.trackUrl,
+                    trackAuthor: data.trackAuthor,
+                    source:      data.source,
+                    volume:      data.volume,
+                },
+            });
+        } catch (err) {
+            console.error("[LogService] Music log write failed:", err);
+        }
+    }
+
 
     /**
      * Broadcast logs to designated Guild Channel

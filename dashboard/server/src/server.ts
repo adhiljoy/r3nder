@@ -7,8 +7,8 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
-import { DatabaseUtils } from "../../shared/utils/database";
-import { Guild } from "../../shared/models/Guild";
+import { DatabaseUtils } from "@utils/database";
+import { Guild } from "@database/Guild";
 
 dotenv.config({ path: path.join(__dirname, "../../../.env") });
 
@@ -27,7 +27,7 @@ const io = new Server(httpServer, {
     }
 });
 
-import { LogType, LogPriority } from "../../shared/models/Log";
+import { LogType, LogPriority } from "@database/Log";
 
 const BOT_API_URL = "http://localhost:3002";
 
@@ -94,10 +94,11 @@ passport.use(new DiscordStrategy({
     clientID: process.env.CLIENT_ID!,
     clientSecret: process.env.CLIENT_SECRET!,
     callbackURL: process.env.CALLBACK_URL!,
-    scope: ["identify", "guilds"]
+    scope: ["identify", "guilds", "email"]
 }, (accessToken, refreshToken, profile, done) => {
     return done(null, profile);
 }));
+
 
 console.log(`[Dashboard-Auth] Client ID: ${process.env.CLIENT_ID}`);
 console.log(`[Dashboard-Auth] Redirect URI: ${process.env.CALLBACK_URL}`);
@@ -105,8 +106,11 @@ console.log(`[Dashboard-Auth] Redirect URI: ${process.env.CALLBACK_URL}`);
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user: any, done) => done(null, user));
 
+// Bit-perfect Meta Hardcoding
+const pkg = { version: "1.0.0" };
+
 // Middleware to check authentication
-import { User } from "../../shared/models/User";
+import { User } from "@database/User";
 
 const isAuth = (req: any, res: any, next: any) => {
     if (req.user) return next();
@@ -126,16 +130,109 @@ const checkPremium = (tier: string) => async (req: any, res: any, next: any) => 
 
 const checkAdmin = (req: any, res: any, next: any) => {
     const adminIds = (process.env.ADMIN_IDS || "").split(",");
-    if (req.user && adminIds.includes((req.user as any).id)) {
-        return next();
-    }
+    const adminEmail = "adhiljoyappu@gmail.com".toLowerCase();
+    const adminUsername = "renderexe".toLowerCase();
+
+    const user = req.user as any;
+    const isAdmin = user && (
+        adminIds.includes(user.id) || 
+        user.email?.toLowerCase() === adminEmail || 
+        user.username?.toLowerCase() === adminUsername
+    );
+
+    if (isAdmin) return next();
+
+
+    // Log unauthorized attempt
+    logEvent({
+        type: LogType.SYSTEM,
+        priority: LogPriority.CRITICAL,
+        action: "UNAUTHORIZED_ADMIN_ACCESS",
+        content: `Unauthorized access attempt to /admin by ${user?.username || "Unknown"} (${user?.id || "N/A"})`,
+        userId: user?.id,
+        metadata: { ip: req.ip, userAgent: req.headers["user-agent"] }
+    });
+
     res.status(403).json({ message: "Admin access denied" });
 };
 
-import { Log } from "../../shared/models/Log";
 
-// Admin API Router
-app.use("/api/admin", isAuth, adminRouter);
+import { Log } from "@database/Log";
+import { MusicLog, MusicEventType } from "@database/MusicLog";
+
+
+// ─── Music Analytics Routes ────────────────────────────────────────────────
+/**
+ * GET /api/music/:guildId/logs
+ * Full music analytics for a guild: recent plays, most played, active users, skip rate
+ */
+app.get("/api/music/:guildId/logs", isAuth, async (req: any, res: any) => {
+    const { guildId } = req.params;
+    const limit = parseInt(req.query.limit as string) || 50;
+
+    try {
+        // Recent play events
+        const recentPlays = await MusicLog.find({ guildId, event: MusicEventType.MUSIC_PLAY })
+            .sort({ timestamp: -1 })
+            .limit(limit)
+            .lean();
+
+        // Most played songs (aggregate by trackTitle)
+        const mostPlayed = await MusicLog.aggregate([
+            { $match: { guildId, event: MusicEventType.MUSIC_PLAY } },
+            { $group: { _id: "$trackTitle", count: { $sum: 1 }, trackUrl: { $first: "$trackUrl" }, trackAuthor: { $first: "$trackAuthor" }, source: { $first: "$source" } } },
+            { $sort: { count: -1 } },
+            { $limit: 10 },
+        ]);
+
+        // Most active users
+        const activeUsers = await MusicLog.aggregate([
+            { $match: { guildId, event: MusicEventType.QUEUE_ADD } },
+            { $group: { _id: "$userId", username: { $first: "$username" }, count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 10 },
+        ]);
+
+        // Skip rate: skips / plays
+        const totalPlays = await MusicLog.countDocuments({ guildId, event: MusicEventType.MUSIC_PLAY });
+        const totalSkips = await MusicLog.countDocuments({ guildId, event: MusicEventType.MUSIC_SKIP });
+        const skipRate   = totalPlays > 0 ? ((totalSkips / totalPlays) * 100).toFixed(1) : "0.0";
+
+        // Volume change history
+        const volumeHistory = await MusicLog.find({ guildId, event: MusicEventType.VOLUME_CHANGE })
+            .sort({ timestamp: -1 })
+            .limit(20)
+            .lean();
+
+        res.json({
+            guildId,
+            summary: {
+                totalPlays,
+                totalSkips,
+                skipRate: `${skipRate}%`,
+                totalQueued: await MusicLog.countDocuments({ guildId, event: MusicEventType.QUEUE_ADD }),
+            },
+            recentPlays,
+            mostPlayed: mostPlayed.map((m: any) => ({
+                title:      m._id,
+                plays:      m.count,
+                url:        m.trackUrl,
+                author:     m.trackAuthor,
+                source:     m.source,
+            })),
+            activeUsers: activeUsers.map((u: any) => ({
+                userId:   u._id,
+                username: u.username,
+                tracks:   u.count,
+            })),
+            volumeHistory,
+        });
+    } catch (err: any) {
+        res.status(500).json({ error: "Music analytics query failed", message: err.message });
+    }
+});
+
+
 // Auth Routes
 app.post("/api/premium/upgrade", isAuth, async (req, res) => {
     const { tier } = req.body;
@@ -150,21 +247,53 @@ app.post("/api/premium/upgrade", isAuth, async (req, res) => {
         res.status(500).json({ success: false });
     }
 });
+
 app.get("/auth/login", passport.authenticate("discord"));
 app.get("/auth/callback", passport.authenticate("discord", {
     failureRedirect: "/auth/login",
-    successRedirect: "http://localhost:5173/guilds"
-}));
+}), (req: any, res) => {
+    const adminIds = (process.env.ADMIN_IDS || "").split(",");
+    const adminEmail = "adhiljoyappu@gmail.com";
+    const adminUsername = "renderexe";
+
+    const isAdmin = req.user && (
+        adminIds.includes(req.user.id) || 
+        req.user.email === adminEmail || 
+        req.user.username === adminUsername
+    );
+
+    if (isAdmin) {
+        res.redirect("http://localhost:5173/core/overview");
+    } else {
+        res.redirect("http://localhost:5173/portal");
+    }
+});
+
+
+
 app.get("/api/auth/logout", (req: any, res) => {
     req.logout(() => res.json({ message: "Logged out" }));
 });
 
-// API Routes
+// Admin API Router
+app.use("/api/admin", isAuth, checkAdmin, adminRouter);
+
+// Profile & Identity Routes
 app.get("/api/user", isAuth, (req: any, res) => {
     const adminIds = (process.env.ADMIN_IDS || "").split(",");
-    const isAdmin = adminIds.includes(req.user.id);
-    res.json({ ...req.user, isAdmin });
+    const adminEmail = "adhiljoyappu@gmail.com".toLowerCase();
+    const adminUsername = "renderexe".toLowerCase();
+
+    const isAdmin = req.user && (
+        adminIds.includes(req.user.id) || 
+        req.user.email?.toLowerCase() === adminEmail || 
+        req.user.username?.toLowerCase() === adminUsername
+    );
+    res.json({ ...req.user, isAdmin, clientId: process.env.CLIENT_ID });
 });
+
+
+
 
 // User Self-Management Routes
 app.get("/api/user/profile", isAuth, async (req: any, res) => {
@@ -210,6 +339,7 @@ app.post("/api/user/reminder", isAuth, async (req: any, res) => {
             { $push: { reminders: newReminder } },
             { upsert: true }
         );
+
 
         logEvent({
             type: LogType.SYSTEM,
@@ -295,7 +425,7 @@ app.get("/api/guild/:id/analytics", isAuth, isMember, async (req, res) => {
         ]);
 
         res.json({
-            timeline: timeline.map(t => ({
+            timeline: timeline.map((t: any) => ({
                 time: t.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 messages: t.messages,
                 activeUsers: t.activeUsers,
@@ -305,8 +435,8 @@ app.get("/api/guild/:id/analytics", isAuth, isMember, async (req, res) => {
                 totalMessages24h: daily?.messages || 0,
                 activeUsers: daily?.activeUsers || 0,
                 voiceAttendance: daily?.voiceAttendance || 0,
-                topCommands: commandTrends.map(c => ({ name: c._id, count: c.count })),
-                topUsers: topUsers.map(u => ({ id: u._id, activity: u.count }))
+                topCommands: commandTrends.map((c: any) => ({ name: c._id, count: c.count })),
+                topUsers: topUsers.map((u: any) => ({ id: u._id, activity: u.count }))
             }
         });
     } catch (error) {
@@ -343,12 +473,36 @@ app.get("/api/guild/:id/logs", isAuth, isMember, async (req, res) => {
 });
 
 app.get("/api/guilds", isAuth, async (req: any, res) => {
-    const userGuilds = req.user.guilds;
-    const guilds = userGuilds.filter((g: any) => (g.permissions & 0x8) === 0x8); // Admin only
+    try {
+        const userGuilds = req.user.guilds;
+        const manageGuilds = userGuilds.filter((g: any) => (parseInt(g.permissions) & 0x8) === 0x8 || (parseInt(g.permissions) & 0x20) === 0x20); // Admin or Manage Server
 
-    // Further implementation needed: check if bot is in the guild
-    res.json(guilds);
+        // Check which guilds have the bot via real-time presence API
+        let botPresence: Record<string, boolean> = {};
+        try {
+            const guildIds = manageGuilds.map((g: any) => g.id);
+            const response = await axios.post(`${BOT_API_URL}/guilds/presence`, { guildIds }, { timeout: 2000 });
+            botPresence = response.data as Record<string, boolean>;
+
+        } catch (error) {
+            console.error("[Dashboard] Bot presence API check failed, falling back to database detection.");
+            const botGuilds = await Guild.find({ guildId: { $in: manageGuilds.map((g: any) => g.id) } });
+            botGuilds.forEach(bg => { botPresence[bg.guildId] = true; });
+        }
+
+        const result = manageGuilds.map((g: any) => ({
+            ...g,
+            botInstalled: !!botPresence[g.id]
+        }));
+
+
+        res.json(result);
+
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch guilds" });
+    }
 });
+
 
 app.get("/api/guild/:id/settings", isAuth, async (req, res) => {
     const guildId = req.params.id;
@@ -359,7 +513,7 @@ app.get("/api/guild/:id/settings", isAuth, async (req, res) => {
     res.json(guild);
 });
 
-import { Analytics } from "../../shared/models/Analytics";
+import { Analytics } from "@database/Analytics";
 
 // ... (existing code)
 
@@ -369,6 +523,17 @@ app.get("/api/guild/:id/music", isAuth, async (req, res) => {
         res.json(response.data);
     } catch (error) {
         res.status(500).json({ playing: false, error: "Bot is offline or unreachable" });
+    }
+});
+
+app.get("/api/guild/:id/music/logs", isAuth, async (req: any, res) => {
+    try {
+        const logs = await MusicLog.find({ guildId: req.params.id })
+            .sort({ timestamp: -1 })
+            .limit(20);
+        res.json(logs);
+    } catch (error) {
+        res.status(500).json({ message: "Music log retrieval failure" });
     }
 });
 
@@ -418,6 +583,7 @@ app.post("/api/guild/:id/settings", isAuth, async (req: any, res) => {
                 changes: diff
             });
         }
+
         
         res.json({ message: "Settings updated", diff });
     } catch (error) {
@@ -425,7 +591,17 @@ app.post("/api/guild/:id/settings", isAuth, async (req: any, res) => {
     }
 });
 
+app.post("/api/guild/:id/command", isAuth, async (req, res) => {
+    try {
+        const response = await axios.post(`${BOT_API_URL}/guild/${req.params.id}/command`, req.body);
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ success: false, error: "Bot is offline or unreachable" });
+    }
+});
+
 // WebSocket Logic
+
 io.on("connection", (socket: any) => {
     const { guildId } = socket.handshake.query;
     if (guildId) {

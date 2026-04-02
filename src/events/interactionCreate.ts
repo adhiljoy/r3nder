@@ -7,7 +7,7 @@ import {
     TextChannel,
 } from "discord.js";
 import { R3NDERClient } from "@client/R3nderClient";
-import { MUSIC_BTN, buildPlayerEmbed, buildControlRow, buildStoppedEmbed } from "@utils/MusicUI";
+import { MUSIC_BTN, buildPlayerEmbed, buildControlRow, buildStoppedEmbed, buildPlaylistEmbed } from "@utils/MusicUI";
 import { LogType, LogPriority } from "@database/Log";
 import { User } from "@database/User";
 import { Guild } from "@database/Guild";
@@ -92,12 +92,37 @@ async function handleMusicButton(client: R3NDERClient, interaction: ButtonIntera
                 client.music.setVolume(guildId, queue.volume - 10);
                 queue_updated = client.music.getQueue(guildId) ?? null!;
                 break;
+
+            case MUSIC_BTN.BACK:
+                if (!queue) throw new Error("No music playing.");
+                // Restart current track by stopping and re-queuing
+                await client.music.skip(guildId);
+                await new Promise(res => setTimeout(res, 800));
+                queue_updated = client.music.getQueue(guildId) ?? null!;
+                break;
+
+            case MUSIC_BTN.AUTOPLAY:
+                // AutoPlay: inform user it is not yet configured
+                await interaction.followUp({
+                    content: "🔮 **AutoPlay** — This feature is coming soon! Stay tuned.",
+                    ephemeral: true,
+                });
+                return;
+
+            case MUSIC_BTN.PLAYLIST:
+                // Show the queue as an ephemeral embed
+                if (!queue) throw new Error("No music playing.");
+                {
+                    const plEmbed = buildPlaylistEmbed(queue, interaction.guild?.name ?? "Server");
+                    await interaction.followUp({ embeds: [plEmbed], ephemeral: true });
+                }
+                return;
         }
 
         // Update the persistent player embed
         if (queue_updated) {
             const embed = buildPlayerEmbed(queue_updated, interaction.guild?.name ?? "Server");
-            const rows = buildControlRow(queue_updated.paused);
+            const rows  = buildControlRow(queue_updated.paused, queue_updated.repeatMode ?? 0);
             await interaction.editReply({ embeds: [embed], components: rows });
         }
 

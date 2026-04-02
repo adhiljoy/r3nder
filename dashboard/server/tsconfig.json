@@ -4,10 +4,14 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "outDir": "./dist",
-    "rootDir": "../",
-    "baseUrl": ".",
+    "rootDir": "../../",
+    "baseUrl": "../../",
     "paths": {
-      "@shared/*": ["src/shared/*"]
+      "@shared/*": ["dashboard/server/src/shared/*"],
+      "@database/*": ["dashboard/shared/models/*"],
+      "@utils/*": ["dashboard/shared/utils/*"],
+      "@config/*": ["src/config/*"],
+      "@services/*": ["src/services/*"]
     },
     "strict": true,
     "noImplicitAny": true,
@@ -18,6 +22,6 @@
     "resolveJsonModule": true,
     "lib": ["ESNext"]
   },
-  "include": ["src/**/*", "../shared/**/*"],
+  "include": ["src/**/*", "../../dashboard/shared/**/*", "../../src/**/*"],
   "exclude": ["node_modules"]
 }

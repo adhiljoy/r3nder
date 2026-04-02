@@ -16,76 +16,116 @@ export class AutopilotService {
         this.client = client;
         this.ai = ai;
         this.ratelimit = new RateLimitService();
-        this.startInactivityMonitor();
+        // Background engagement disabled for controlled environment
+        // this.startInactivityMonitor();
     }
+
 
     /**
      * Centralized message handler for AI Autopilot triggers
      */
     public async handleMessage(message: Message, guildData: any): Promise<boolean> {
-        if (!guildData.aiAutopilot.enabled) return false;
+        // 1. Safety & Enable Check
+        if (message.author.bot || !guildData.aiAutopilot.enabled) return false;
 
-        const triggers = ["render", "ren", "r3nder"];
+        // 2. Dual-Mode Detection: Trigger Words OR Reply to Bot
         const contentLower = message.content.toLowerCase();
+        const triggers = ["r3nder", "render"];
         const foundTrigger = triggers.find(t => contentLower.startsWith(t));
-        const isMentioned = message.mentions.has(this.client.user!);
-        const isQuestion = await this.ai.isPrompt(message.content);
         
-        // Cooldown keys
-        const userCooldownKey = `ai_user:${message.author.id}`;
-        const autoReplyCooldownKey = `ai_auto:${message.guildId}`;
+        let isReplyToBot = false;
+        if (message.reference?.messageId) {
+            try {
+                const referencedMsg = await message.channel.messages.fetch(message.reference.messageId);
+                if (referencedMsg.author.id === this.client.user?.id) {
+                    isReplyToBot = true;
+                }
+            } catch (err) {
+                // Message might be deleted or inaccessible
+            }
+        }
 
+        if (!foundTrigger && !isReplyToBot) return false;
+
+        // 3. Authorization Check (Admins OR Whitelisted Users)
+        const adminIds = (process.env.ADMIN_IDS || "").split(",");
+        const isWhitelisted = guildData.aiAutopilot.allowedUsers?.includes(message.author.id);
+        const isAdmin = adminIds.includes(message.author.id) || message.member?.permissions.has("Administrator");
+
+        if (!isAdmin && !isWhitelisted) return false;
+
+        // 4. Rate Limiting Check
+        const canUserProceed = this.ratelimit.isAllowed(message.author.id, guildData.isPremium);
+        if (!canUserProceed) return false;
+
+        // 5. Context Cleaning
         let cleanedContent = message.content;
         if (foundTrigger) {
             cleanedContent = message.content.slice(foundTrigger.length).trim();
-        } else if (isMentioned) {
-            cleanedContent = message.content.replace(`<@!${this.client.user?.id}>`, "").replace(`<@${this.client.user?.id}>`, "").trim();
         }
-
-        // Decision logic: Should we respond?
-        const canUserProceed = this.ratelimit.isAllowed(message.author.id, guildData.isPremium);
         
-        const shouldRespond = (
-            (isMentioned && guildData.aiAutopilot.mentionResponse) || 
-            (foundTrigger) || 
-            (guildData.aiAutopilot.autoReply && isQuestion && this.ratelimit.check(autoReplyCooldownKey, 1, 10000))
-        ) && canUserProceed;
+        if (!cleanedContent && !isReplyToBot) return false;
 
-        if (shouldRespond) {
-            try {
-                // Fetch user for personalization
-                const userData = await User.findOne({ userId: message.author.id, guildId: message.guildId });
-                
-                await (message.channel as TextChannel).sendTyping();
-                
-                const response = await this.ai.chat(
-                    message.author.id, 
-                    message.guildId!, 
-                    message.channelId, 
-                    cleanedContent,
-                    userData?.nickname
-                );
 
-                // Global Logging (AI Response)
-                (this.client as R3NDERClient).logs.log({
-                    type: LogType.AI,
-                    priority: LogPriority.INFO,
-                    action: "AI_RESPONSE",
-                    content: `AI responded to ${message.author.tag}: ${response.slice(0, 50)}...`,
-                    userId: message.author.id,
-                    guildId: message.guildId!,
-                    metadata: { prompt: cleanedContent, response }
-                });
+        try {
+            await (message.channel as TextChannel).sendTyping();
 
-                await message.reply(response);
-                return true;
-            } catch (error) {
-                console.error("[Autopilot Message Error]", error);
+            // 6. Intent Detection
+            const intent = this.detectIntent(cleanedContent);
+            let response = "";
+
+            switch (intent) {
+                case "WEATHER":
+                    // Simple weather mock (service doesn't exist yet but intent is ready)
+                    response = "I'm currently preparing my satellite metrics to provide real-time weather. Stay tuned! ☁️";
+                    break;
+                case "NICKNAME":
+                    response = "I've detected a nickname request! Please use `/setnickname` so my internal records stay synchronized. 🏷️";
+                    break;
+                case "MUSIC":
+                    response = "I've noted your interest in music! I've activated my sonic core — use `/play` or see my dynamic control panel for seamless playback. 🎵";
+                    break;
+                default:
+                    // General Chat
+                    response = await this.ai.chat(
+                        message.author.id, 
+                        message.guildId!, 
+                        message.channelId, 
+                        cleanedContent
+                    );
             }
+
+            // 7. Global Logging (AI Response)
+            (this.client as R3NDERClient).logs.log({
+                type: LogType.AI,
+                priority: LogPriority.INFO,
+                action: "AI_CONTROLLED_RESPONSE",
+                content: `AI responded to ${message.author.tag} [Intent: ${intent}]: ${response.slice(0, 50)}...`,
+                userId: message.author.id,
+                guildId: message.guildId!,
+                metadata: { prompt: cleanedContent, response, intent }
+            });
+
+            await message.reply({ content: response, allowedMentions: { repliedUser: true } });
+            return true;
+        } catch (error) {
+            console.error("[Autopilot Message Error]", error);
         }
 
         return false;
     }
+
+    /**
+     * Intent Classifier for Assistant Logic
+     */
+    private detectIntent(content: string): "WEATHER" | "NICKNAME" | "MUSIC" | "GENERAL" {
+        const lower = content.toLowerCase();
+        if (lower.includes("weather") || lower.includes("temperature") || lower.includes("clouds")) return "WEATHER";
+        if (lower.includes("nickname") || lower.includes("call me")) return "NICKNAME";
+        if (lower.includes("music") || lower.includes("play") || lower.includes("song")) return "MUSIC";
+        return "GENERAL";
+    }
+
 
     /**
      * Record activity in a channel to reset inactivity timers

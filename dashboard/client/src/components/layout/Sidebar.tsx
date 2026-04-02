@@ -1,127 +1,121 @@
 import { Link, useLocation } from "react-router-dom";
-import {
-    LayoutDashboard, Zap, Music, Settings, Activity, Sparkles, ShieldCheck, LogOut,
-    User, Terminal, X
+import { 
+    LayoutDashboard, Zap, Music, Settings, 
+    Activity, Sparkles, ShieldCheck, LogOut, 
+    User, Terminal, X, Globe, BarChart3, 
+    ShieldAlert, Info, Cpu, Monitor
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 
-const Sidebar = ({ guildId, onClose }: { guildId: string, onClose?: () => void }) => {
+const Sidebar = ({ guildId, isCore = false, isOpen, onClose }: { guildId?: string, isCore?: boolean, isOpen: boolean, onClose: () => void }) => {
     const location = useLocation();
     const { logout, user } = useAuth();
+    const isAdmin = (user as any)?.isAdmin;
 
-    const menuItems = [
-        { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={22} />, path: `/dashboard/${guildId}` },
-        { id: "ai", label: "AI Control", icon: <Zap size={22} />, path: `/dashboard/${guildId}/ai` },
-        { id: "music", label: "Music Sync", icon: <Music size={22} />, path: `/dashboard/${guildId}/music` },
-        { id: "analytics", label: "Analytics", icon: <Activity size={22} />, path: `/dashboard/${guildId}/analytics` },
-        { id: "logs", label: "Server Logs", icon: <Terminal size={22} />, path: `/dashboard/${guildId}/server-logs` },
-        { id: "subscription", label: "Premium", icon: <Sparkles size={22} />, path: `/dashboard/${guildId}/subscription` },
-        { id: "settings", label: "General", icon: <Settings size={22} />, path: `/dashboard/${guildId}/settings` },
+    const navItems = isCore ? [
+        { id: "overview", label: "Global Pulse", icon: <Globe size={20} />, path: "/core/overview" },
+        { id: "logs", label: "Forensic Logs", icon: <Terminal size={20} />, path: "/core/logs" },
+        { id: "analytics", label: "Network Stats", icon: <BarChart3 size={20} />, path: "/core/analytics" },
+        { id: "status", label: "Node Health", icon: <ShieldAlert size={20} />, path: "/core/status" }
+    ] : [
+        { id: "dashboard", label: "Overview", icon: <LayoutDashboard size={20} />, path: `/app/${guildId}` },
+        { id: "ai", label: "AI Autopilot", icon: <Zap size={20} />, path: `/app/${guildId}/ai` },
+        { id: "music", label: "Music Flux", icon: <Music size={20} />, path: `/app/${guildId}/music` },
+        { id: "analytics", label: "Nexus Stats", icon: <Activity size={20} />, path: `/app/${guildId}/analytics` },
+        { id: "settings", label: "Executive", icon: <Settings size={20} />, path: `/app/${guildId}/settings` }
     ];
 
+    const container = {
+        hidden: { opacity: 0, x: -20 },
+        show: {
+            opacity: 1,
+            x: 0,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const item = {
+        hidden: { opacity: 0, x: -10 },
+        show: { opacity: 1, x: 0 }
+    };
+
     return (
-        <aside className="w-72 h-screen glass-sidebar flex flex-col relative z-60">
-            <div className="p-8">
-                <div className="flex items-center justify-between mb-8">
-                    <Link to="/guilds" className="group flex items-center gap-3">
-                        <div className="w-10 h-10 bg-linear-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform duration-300">
-                            <ShieldCheck className="text-white" size={24} />
+        <aside className={`fixed inset-y-0 left-0 z-50 w-80 lg:relative lg:block glass-sidebar bg-white/2 backdrop-blur-3xl border-r border-white/5 transition-transform duration-500 transform ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+            <div className="h-full flex flex-col p-8 space-y-12">
+                {/* Brand Logo */}
+                <header className="flex items-center justify-between">
+                    <Link to="/" className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all duration-700 hover:scale-110 ${isCore ? "bg-red-500 shadow-red-500/20" : "bg-primary shadow-primary/30"}`}>
+                            <Zap className="text-white" size={24} />
                         </div>
-                        <span className="text-2xl font-black tracking-tighter text-white">
-                            R3NDER
-                        </span>
+                        <span className="text-2xl font-black tracking-tighter italic uppercase text-white">R3NDER</span>
                     </Link>
+                    <button onClick={onClose} className="lg:hidden text-white/30"><X /></button>
+                </header>
 
-                    {/* Mobile Close Button */}
-                    <button
-                        onClick={onClose}
-                        className="lg:hidden p-2 rounded-xl bg-white/5 text-white/50 hover:text-white"
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
-
-                {user?.premiumTier && user.premiumTier !== "free" && (
-                    <div className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border flex items-center gap-2 w-fit ${user.premiumTier === "ultra" ? "bg-amber-500/10 border-amber-500/20 text-amber-500" : "bg-primary/10 border-primary/20 text-primary"
-                        }`}>
-                        <Sparkles size={12} />
-                        {user.premiumTier} Member
-                    </div>
-                )}
-            </div>
-
-            <nav className="flex-1 px-4 py-4 space-y-2">
-                <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-white/20 mb-4">Management</p>
-                {menuItems.map((item) => {
-                    const isActive = location.pathname === item.path;
-                    return (
-                        <Link
-                            key={item.id}
-                            to={item.path}
-                            className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 font-medium group ${isActive
-                                ? "bg-white/8 text-white shadow-inner border border-white/5"
-                                : "text-white/40 hover:text-white/80 hover:bg-white/3"
-                                }`}
-                        >
-                            <div className={`${isActive ? "text-primary" : "text-white/40 group-hover:text-white/60"} transition-colors`}>
-                                {item.icon}
-                            </div>
-                            {item.label}
-                            {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-lg shadow-primary/50" />}
-                        </Link>
-                    );
-                })}
-
-                <div className="pt-8 space-y-2">
-                    <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-white/20 mb-4">Account</p>
-                    <Link
-                        to="/dashboard/profile"
-                        className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 font-medium group ${location.pathname === "/dashboard/profile"
-                            ? "bg-white/8 text-white border border-white/5"
-                            : "text-white/40 hover:text-white/80 hover:bg-white/3"
-                            }`}
-                    >
-                        <User className={`${location.pathname === "/dashboard/profile" ? "text-primary" : "text-white/40 group-hover:text-white/60"}`} size={22} />
-                        My Profile
-                    </Link>
-                </div>
-
-                {/* Admin Only Section */}
-                {(user as any)?.isAdmin && (
-                    <div className="pt-8 space-y-2">
-                        <p className="px-4 text-[10px] font-bold uppercase tracking-widest text-red-500/50 mb-4">Admin Command Center</p>
-                        <Link
-                            to="/admin/overview"
-                            className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 font-medium group ${location.pathname === "/admin/overview"
-                                ? "bg-red-500/10 text-white border border-red-500/20"
-                                : "text-white/40 hover:text-white/80 hover:bg-white/3"
-                                }`}
-                        >
-                            <ShieldCheck className={`${location.pathname === "/admin/overview" ? "text-red-500" : "text-white/40 group-hover:text-white/60"}`} size={22} />
-                            Admin Overview
-                        </Link>
-                        <Link
-                            to="/admin/logs"
-                            className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 font-medium group ${location.pathname === "/admin/logs"
-                                ? "bg-red-500/10 text-white border border-red-500/20"
-                                : "text-white/40 hover:text-white/80 hover:bg-white/3"
-                                }`}
-                        >
-                            <Activity className={`${location.pathname === "/admin/logs" ? "text-red-500" : "text-white/40 group-hover:text-white/60"}`} size={22} />
-                            Bot Logs
-                        </Link>
-                    </div>
-                )}
-            </nav>
-
-            <div className="p-4 mt-auto border-t border-white/5">
-                <button
-                    onClick={logout}
-                    className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-white/40 hover:text-red-400 hover:bg-red-500/5 transition-all duration-300 group"
+                {/* Primary Navigation Hub */}
+                <motion.nav 
+                    variants={container}
+                    initial="hidden"
+                    animate="show"
+                    className="flex-1 space-y-2"
                 >
-                    <LogOut size={20} className="group-hover:translate-x-1 transition-transform" />
-                    <span className="font-bold text-sm">Sign Out</span>
-                </button>
+                    <p className={`px-4 text-[10px] font-black uppercase tracking-[0.3em] mb-4 ${isCore ? "text-red-500/40" : "text-primary/40"}`}>Management Suite</p>
+                    {navItems.map((nav) => {
+                        const isActive = location.pathname === nav.path;
+                        return (
+                            <motion.div variants={item} key={nav.id}>
+                                <Link 
+                                    to={nav.path} 
+                                    className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-500 font-bold text-sm group ${
+                                        isActive 
+                                            ? `${isCore ? "bg-red-500/10 text-red-500 border-red-500/20 shadow-lg shadow-red-500/10" : "bg-primary/10 text-primary border-primary/20 shadow-lg shadow-primary/10"} border` 
+                                            : "text-white/30 hover:text-white/80 hover:bg-white/3"
+                                    }`}
+                                >
+                                    <div className={`${isActive ? (isCore ? "text-red-500" : "text-primary") : "text-white/20 group-hover:text-white/40"} transition-colors`}>{nav.icon}</div>
+                                    <span>{nav.label}</span>
+                                    {isActive && <div className={`ml-auto w-1.5 h-1.5 rounded-full ${isCore ? "bg-red-500" : "bg-primary"} shadow-lg`} />}
+                                </Link>
+                            </motion.div>
+                        );
+                    })}
+
+                    {/* Admin Switcher */}
+                    {isAdmin && !isCore && (
+                        <motion.div variants={item} className="pt-10">
+                            <Link 
+                                to="/core/overview" 
+                                className="flex items-center gap-4 px-4 py-3.5 rounded-xl bg-orange-500/5 text-orange-400/60 hover:text-orange-400 hover:bg-orange-500/10 transition-all duration-500 font-black border border-orange-500/10 uppercase text-[10px] tracking-widest"
+                            >
+                                <ShieldCheck size={18} /> ADMIN DASHBOARD
+                            </Link>
+                        </motion.div>
+                    )}
+                </motion.nav>
+
+                {/* Profile Footer Hub */}
+                <footer className="pt-8 border-t border-white/5 space-y-6">
+                    <div className="flex items-center gap-4">
+                        <img src={user.avatar} className="w-12 h-12 rounded-2xl border border-white/10 shadow-xl shadow-black/40" alt="Avatar" />
+                        <div>
+                            <p className="text-sm font-black uppercase tracking-tight text-white mb-0.5">{user.username}</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-white/20">
+                                {user.premiumTier || "Free"} Pulse
+                            </p>
+                        </div>
+
+                    </div>
+                    <button 
+                        onClick={logout}
+                        className="w-full flex items-center justify-center gap-3 px-6 py-3.5 rounded-xl bg-white/3 text-white/20 hover:bg-white/5 hover:text-red-400 transition-all duration-500 font-black text-[10px] tracking-widest border border-white/5 uppercase"
+                    >
+                        <LogOut size={16} /> SIGN OUT OF NEXUS
+                    </button>
+                </footer>
             </div>
         </aside>
     );

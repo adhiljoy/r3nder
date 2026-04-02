@@ -1,260 +1,172 @@
-import React from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { 
-    Cpu, Shield, Activity, Music, BarChart3, 
-    ChevronRight, ExternalLink, MessageSquare, 
-    Zap, Globe, Sparkles
+    Zap, Sparkles, Shield, Music, 
+    ArrowRight, Globe, Cpu, MessageSquare,
+    Server, Users, Terminal
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import mockup from "../assets/mockup.png";
+
 
 const Landing = () => {
-    const fadeUp = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
-    };
+    const [statsData, setStatsData] = useState({ totalServers: 0, totalUsers: 0, commandsProcessed: 0 });
 
-    const stagger = {
-        visible: { transition: { staggerChildren: 0.1 } }
-    };
+    useEffect(() => {
+        axios.get("http://localhost:3001/api/stats").then(res => setStatsData(res.data)).catch(() => {});
+    }, []);
+
+    const stats = [
+        { label: "Synced Servers", value: statsData.totalServers.toString(), icon: <Server size={20} /> },
+        { label: "Orchestrated Users", value: statsData.totalUsers.toLocaleString() + "+", icon: <Users size={20} /> },
+        { label: "Autonomous Actions", value: statsData.commandsProcessed.toLocaleString(), icon: <Terminal size={20} /> }
+    ];
+
+
+    const features = [
+        { 
+            title: "AI Autopilot", 
+            description: "Advanced GPT-4o driven personality sync for your community. Autonomous chatting and mentions.",
+            icon: <Cpu className="text-primary" size={24} /> 
+        },
+        { 
+            title: "Music Flux Engine", 
+            description: "High-fidelity SoundCloud and YouTube synchronization with zero-latency playback.",
+            icon: <Music className="text-accent" size={24} /> 
+        },
+        { 
+            title: "Shield Moderation", 
+            description: "Advanced role-based access and automated moderation log pulses for zero-distress community care.",
+            icon: <Shield className="text-emerald-500" size={24} /> 
+        },
+        { 
+            title: "Global Analytics", 
+            description: "Real-time telemetry and pulse tracking for server activity, member growth, and AI usage.",
+            icon: <Zap className="text-amber-500" size={24} /> 
+        }
+    ];
 
     return (
-        <div className="min-h-screen bg-background text-white selection:bg-primary/30">
-            {/* Navbar */}
-            <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-background/50 backdrop-blur-xl">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-linear-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-                            <Zap size={20} className="text-white" fill="currentColor" />
-                        </div>
-                        <span className="text-2xl font-black tracking-tighter">R3NDER</span>
-                    </div>
-                    
-                    <div className="hidden md:flex items-center gap-8 text-sm font-bold text-white/40 uppercase tracking-widest">
-                        <a href="#features" className="hover:text-white transition-colors">Features</a>
-                        <a href="#stats" className="hover:text-white transition-colors">OS Stats</a>
-                        <a href="https://github.com/adhiljoy/r3nder" className="hover:text-white transition-colors flex items-center gap-2">
-                            Source <ExternalLink size={14} />
+        <div className="relative overflow-x-hidden pt-20">
+            {/* Background Glow Mesh */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 glow-mesh opacity-20" />
+            <div className="absolute top-[30%] -right-20 glow-mesh opacity-10 bg-accent/30" />
+
+            <div className="max-w-7xl mx-auto px-6">
+                {/* Hero Section */}
+                <header className="flex flex-col items-center text-center space-y-10 py-20 lg:py-32">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="px-4 py-2 rounded-full glass-card border-white/10 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-primary"
+                    >
+                        <Sparkles size={14} /> NEW AI KERNEL 2.0 IS LIVE
+                    </motion.div>
+
+                    <motion.h1 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-5xl lg:text-8xl font-black italic tracking-tighter uppercase leading-[0.9] text-gradient"
+                    >
+                        Orchestrate <br />
+                        <span className="text-primary-gradient">Your Empire</span> <br />
+                        with R3NDER
+                    </motion.h1>
+
+                    <motion.p 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="text-lg lg:text-xl text-white/40 max-w-2xl font-medium tracking-tight"
+                    >
+                        High-fidelity Discord automation, AI-driven personality sync, and premium music orchestration. 
+                        Join the high-speed SaaS ecosystem designed for modern communities.
+                    </motion.p>
+
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="flex flex-col sm:flex-row gap-6 pt-4"
+                    >
+                        <a href="http://localhost:3001/auth/discord" className="premium-btn group">
+                            ADD TO DISCORD <ArrowRight className="group-hover:translate-x-1 transition-transform" />
                         </a>
-                    </div>
-
-                    <Link to="/login" className="premium-btn">
-                        Dashboard <ChevronRight size={14} />
-                    </Link>
-                </div>
-            </nav>
-
-            {/* Hero Section */}
-            <header className="relative pt-40 pb-20 overflow-hidden">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-6xl h-full -z-10 opacity-20">
-                    <div className="absolute top-20 left-10 w-96 h-96 bg-primary rounded-full blur-[120px] animate-pulse" />
-                    <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent rounded-full blur-[120px] animate-pulse" />
-                </div>
-
-                <div className="max-w-7xl mx-auto px-6 text-center">
-                    <motion.div 
-                        initial="hidden" 
-                        animate="visible" 
-                        variants={stagger}
-                        className="space-y-6"
-                    >
-                        <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-primary">
-                            <Sparkles size={12} /> Version 2.0 Intelligent Kernel
-                        </motion.div>
-                        
-                        <motion.h1 variants={fadeUp} className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9]">
-                            AI-Powered <br /> 
-                            <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-accent">Discord Control</span>
-                        </motion.h1>
-
-                        <motion.p variants={fadeUp} className="max-w-2xl mx-auto text-lg md:text-xl text-white/40 font-medium">
-                            Modernize your community with real-time analytics, 
-                            intelligent moderation, and SaaS-grade management tools.
-                        </motion.p>
-
-                        <motion.div variants={fadeUp} className="flex flex-wrap items-center justify-center gap-4 pt-6">
-                            <button className="premium-btn py-4 px-10 text-xs">
-                                Invite R3NDER <ChevronRight size={16} />
-                            </button>
-                            <Link to="/login" className="px-10 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-xs font-black uppercase tracking-widest">
-                                Open Dashboard
-                            </Link>
-                        </motion.div>
+                        <Link to="/app" className="premium-btn-outline">
+                            OPEN DASHBOARD
+                        </Link>
                     </motion.div>
+                </header>
 
-                    {/* Hero Preview */}
-                    <motion.div 
-                        initial={{ opacity: 0, y: 40, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{ duration: 1, delay: 0.4 }}
-                        className="mt-20 relative group"
-                    >
-                        <div className="absolute inset-0 bg-primary/20 blur-[100px] -z-10 group-hover:bg-primary/30 transition-all duration-700" />
-                        <div className="glass-card p-2 md:p-4 rotate-x-12 rotate-z-0 perspective-1000 shadow-2xl overflow-hidden">
-                            <img 
-                                src={mockup} 
-                                alt="R3NDER Dashboard Mockup" 
-                                className="w-full h-auto rounded-2xl object-cover shadow-2xl"
-                            />
-                        </div>
-                    </motion.div>
-                </div>
-            </header>
+                {/* Stats Section */}
+                <motion.section 
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    className="grid grid-cols-1 md:grid-cols-3 gap-8 py-20"
+                >
+                    {stats.map((stat) => (
 
-            {/* Stats Section */}
-            <section id="stats" className="py-20 border-t border-white/5 bg-white/5">
-                <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-                    {[
-                        { label: "Total Servers", value: "1,240+", icon: <Globe size={24} /> },
-                        { label: "Commands Executed", value: "2.4M", icon: <Zap size={24} /> },
-                        { label: "Active Users", value: "850K+", icon: <Users size={24} /> }
-                    ].map((stat, i) => (
-                        <div key={i} className="space-y-4">
-                            <div className="w-12 h-12 mx-auto bg-white/5 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                        <div key={stat.label} className="glass-card p-8 flex items-center gap-6 group hover:border-white/20 transition-all duration-500">
+                            <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-primary transition-transform group-hover:scale-110">
                                 {stat.icon}
                             </div>
                             <div>
-                                <div className="text-4xl font-black tracking-tighter">{stat.value}</div>
-                                <div className="text-[10px] font-black uppercase tracking-widest text-white/20 mt-1">{stat.label}</div>
+                                <h3 className="text-4xl font-black italic tracking-tighter uppercase">{stat.value}</h3>
+                                <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">{stat.label}</p>
                             </div>
                         </div>
                     ))}
-                </div>
-            </section>
+                </motion.section>
 
-            {/* Features Grid */}
-            <section id="features" className="py-40">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="text-center mb-20 space-y-4">
-                        <h2 className="text-4xl md:text-5xl font-black tracking-tighter">Everything you need <br /> to scale.</h2>
-                        <p className="text-white/40 font-medium italic">A modular OS designed for modular servers.</p>
+                {/* Features Section */}
+                <section className="py-20 lg:py-32 space-y-20">
+                    <div className="text-center space-y-4">
+                        <h2 className="text-3xl lg:text-5xl font-black italic tracking-tighter uppercase">High-Fidelity Features</h2>
+                        <p className="text-white/30 font-medium">Engineered for performance. Built for community scale.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {[
-                            { 
-                                title: "AI Intelligence", 
-                                desc: "Advanced LLM-driven chat and toxicity management with context memory.", 
-                                icon: <Cpu />, 
-                                color: "from-purple-500/20 to-transparent" 
-                            },
-                            { 
-                                title: "Audit & Logging", 
-                                desc: "Real-time forensic audit logs pushed instantly to your dashboard via WebSockets.", 
-                                icon: <Shield />, 
-                                color: "from-blue-500/20 to-transparent" 
-                            },
-                            { 
-                                title: "Global Analytics", 
-                                desc: "Monitor Peak times, activity heatmaps, and command usage trends visually.", 
-                                icon: <BarChart3 />, 
-                                color: "from-emerald-500/20 to-transparent" 
-                            },
-                            { 
-                                title: "Premium Music", 
-                                desc: "High-fidelity audio engine with real-time persistent player controls.", 
-                                icon: <Music />, 
-                                color: "from-rose-500/20 to-transparent" 
-                            },
-                            { 
-                                title: "Risk Scoring", 
-                                desc: "Identify toxic actors before they strike with automated risk assessments.", 
-                                icon: <Activity />, 
-                                color: "from-yellow-500/20 to-transparent" 
-                            },
-                            { 
-                                title: "Social Connect", 
-                                desc: "Engage your community with XP leveling and personalized AI interactions.", 
-                                icon: <MessageSquare />, 
-                                color: "from-cyan-500/20 to-transparent" 
-                            }
-                        ].map((feat, i) => (
-                            <motion.div 
-                                key={i}
-                                whileHover={{ y: -8 }}
-                                className="glass-card p-8 space-y-6 relative overflow-hidden group"
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {features.map((feature, idx) => (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: idx * 0.1 }}
+                                key={feature.title}
+                                className="glass-card p-10 space-y-6 hover:shadow-2xl hover:shadow-primary/5 transition-all group"
                             >
-                                <div className={`absolute inset-0 bg-linear-to-br ${feat.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                                <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-primary relative z-10 transition-transform group-hover:scale-110">
-                                    {React.cloneElement(feat.icon as any, { size: 28 })}
+                                <div className="w-12 h-12 bg-white/3 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110">
+                                    {feature.icon}
                                 </div>
-                                <div className="relative z-10">
-                                    <h3 className="text-xl font-bold mb-2">{feat.title}</h3>
-                                    <p className="text-sm text-white/40 leading-relaxed font-medium">{feat.desc}</p>
+                                <div className="space-y-3">
+                                    <h3 className="text-xl font-bold uppercase tracking-tight">{feature.title}</h3>
+                                    <p className="text-sm text-white/30 leading-relaxed font-medium">{feature.description}</p>
                                 </div>
                             </motion.div>
                         ))}
                     </div>
-                </div>
-            </section>
+                </section>
 
-            {/* CTA Section */}
-            <section className="py-20 px-6">
-                <div className="max-w-5xl mx-auto glass-card p-12 md:p-20 text-center relative overflow-hidden">
-                    <div className="absolute inset-0 bg-linear-to-r from-primary/10 to-accent/10 opacity-50" />
-                    <div className="relative z-10 space-y-8">
-                        <h2 className="text-4xl md:text-6xl font-black tracking-tighter">Ready to deploy?</h2>
-                        <p className="max-w-xl mx-auto text-white/40 font-medium">Join 1,200+ servers enjoying the R3NDER experience. Scale without limits.</p>
-                        <div className="flex flex-wrap items-center justify-center gap-4">
-                            <button className="premium-btn py-4 px-10">Invite now</button>
-                            <Link to="/login" className="px-10 py-4 rounded-2xl bg-white/10 hover:bg-white/20 transition-all font-black text-[10px] uppercase tracking-widest border border-white/10">Configure Dashboard</Link>
+                {/* Footer */}
+                <footer className="py-20 border-t border-white/5 mt-20 flex flex-col md:flex-row items-center justify-between gap-10">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30">
+                            <Zap className="text-white" size={24} />
                         </div>
+                        <span className="text-2xl font-black tracking-tighter uppercase">R3NDER</span>
                     </div>
-                </div>
-            </section>
-
-            {/* Footer */}
-            <footer className="py-20 border-t border-white/5">
-                <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-12">
-                    <div className="flex flex-col items-center md:items-start gap-4">
-                        <div className="flex items-center gap-2">
-                            <Zap size={20} className="text-primary" />
-                            <span className="text-xl font-black tracking-tighter uppercase font-mono">R3NDER<span className="text-primary opacity-50">.OS</span></span>
-                        </div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Designed & Architected by adhiljoy</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/10">
+                        &copy; 2026 R3NDER Core. All high-fidelity pulses reserved.
+                    </p>
+                    <div className="flex gap-8">
+                        <a href="#" className="text-white/20 hover:text-white transition-colors"><Globe size={20} /></a>
+                        <a href="#" className="text-white/20 hover:text-white transition-colors"><MessageSquare size={20} /></a>
                     </div>
-
-                    <div className="flex items-center gap-8 text-[10px] font-black uppercase tracking-widest text-white/30">
-                        <a href="#" className="hover:text-white transition-colors">Documentation</a>
-                        <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-                        <a href="https://github.com/adhiljoy/r3nder" className="hover:text-white transition-colors">GitHub</a>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all cursor-pointer">
-                            <Globe size={18} />
-                        </div>
-                        <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all cursor-pointer">
-                            <Shield size={18} />
-                        </div>
-                    </div>
-                </div>
-                <div className="mt-10 text-center text-[8px] font-black uppercase tracking-[0.5em] opacity-10">
-                    Proprietary Algorithm • R3NDER Kernel v2.0 • 2026
-                </div>
-            </footer>
+                </footer>
+            </div>
         </div>
     );
 };
-
-const Users = ({ size, className }: { size?: number, className?: string }) => (
-    <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        width={size || 24} 
-        height={size || 24} 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
-        strokeLinejoin="round" 
-        className={className}
-    >
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-);
 
 export default Landing;

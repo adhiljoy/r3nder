@@ -1,37 +1,50 @@
 import React, { useState } from "react";
 import Sidebar from "./Sidebar";
-import Topbar from "./Topbar";
-import { useParams } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import Navbar from "./Navbar";
+import { useParams, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
-const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+const DashboardLayout = ({ children, isCore = false }: { children: React.ReactNode, isCore?: boolean }) => {
     const { guildId } = useParams();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const location = useLocation();
+    const [isSidebarOpen, setSidebarOpen] = useState(false);
 
     return (
-        <div className="flex h-screen overflow-hidden bg-background text-white font-outfit">
-            {/* Sidebar with mobile overlay */}
-            <div className={`fixed inset-0 z-50 lg:relative lg:inset-auto ${isSidebarOpen ? "block" : "hidden lg:block"}`}>
-                <div 
-                    className="absolute inset-0 bg-black/60 backdrop-blur-sm lg:hidden transition-opacity" 
-                    onClick={() => setIsSidebarOpen(false)}
-                />
-                <Sidebar guildId={guildId!} onClose={() => setIsSidebarOpen(false)} />
+        <div className={`min-h-screen flex bg-linear-to-b from-background-start to-background-end ${isCore ? "admin-mode" : ""}`}>
+            {/* Background Mesh Overlay */}
+            <div className="fixed inset-0 pointer-events-none -z-10">
+                <div className={`absolute top-0 right-[-10%] w-[800px] h-[800px] blur-[150px] opacity-20 rounded-full ${isCore ? "bg-red-500/20" : "bg-primary/20"}`} />
+                <div className={`absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] blur-[150px] opacity-10 rounded-full ${isCore ? "bg-red-900/30" : "bg-accent/20"}`} />
             </div>
 
-            <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden transition-all duration-500">
-                <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
-                <main className="p-4 md:p-8 lg:p-12 min-h-[calc(100vh-80px)]">
-                    <div className="max-w-7xl mx-auto w-full">
-                        {children}
-                    </div>
-                </main>
+            <Sidebar 
+                guildId={guildId} 
+                isCore={isCore}
+                isOpen={isSidebarOpen} 
+                onClose={() => setSidebarOpen(false)} 
+            />
+
+            <main className="flex-1 flex flex-col min-w-0 transition-all duration-500">
+                <Navbar 
+                    isCore={isCore}
+                    onMenuClick={() => setSidebarOpen(true)} 
+                />
                 
-                {/* Footer Insight */}
-                <footer className="p-8 border-t border-white/5 opacity-20 text-[10px] font-black uppercase tracking-[0.2em] text-center">
-                    R3NDER OS • Kernel v2.0 • Premium Access Only
-                </footer>
-            </div>
+                <div className="flex-1 p-6 lg:p-12">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={location.pathname}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.5, ease: "circOut" }}
+                            className="max-w-7xl mx-auto"
+                        >
+                            {children}
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+            </main>
         </div>
     );
 };

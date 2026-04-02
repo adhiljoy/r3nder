@@ -17,6 +17,7 @@ import { MusicRecognitionService } from "@services/MusicRecognitionService";
 import { AnalyticsService } from "@services/AnalyticsService";
 import { InternalApiService } from "@services/InternalApiService";
 import { VoiceManager } from "@services/VoiceManager";
+import { MusicPanelService } from "@services/MusicPanelService";
 
 import { LogService } from "@services/LogService";
 import { RiskService } from "@services/RiskService";
@@ -39,6 +40,7 @@ export class R3NDERClient extends Client {
     public internalApi: InternalApiService;
     public logs: LogService;
     public risk: RiskService;
+    public panel: MusicPanelService;
 
     constructor(options: ClientOptions) {
         super(options);
@@ -58,6 +60,7 @@ export class R3NDERClient extends Client {
         this.internalApi = new InternalApiService(this);
         this.logs = new LogService(this);
         this.risk = new RiskService(this);
+        this.panel = new MusicPanelService(this);
     }
 
     public async initialize(): Promise<void> {

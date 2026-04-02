@@ -50,11 +50,11 @@ const Topbar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                                 alt="Server Icon"
                             />
                         ) : (
-                            <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center font-bold text-xs uppercase">
-                                {currentGuild?.name?.charAt(0) || "?"}
+                            <div className="w-8 h-8 bg-linear-to-br from-primary to-accent rounded-lg flex items-center justify-center font-bold text-xs uppercase text-white shadow-lg shadow-primary/20">
+                                {guildId ? (currentGuild?.name?.charAt(0) || "?") : "G"}
                             </div>
                         )}
-                        <span className="font-bold text-sm tracking-tight">{currentGuild?.name || "Select Server"}</span>
+                        <span className="font-bold text-sm tracking-tight">{guildId ? (currentGuild?.name || "Select Server") : "R3NDER Global Core"}</span>
                         <ChevronDown size={16} className="text-white/20 group-hover:text-white transition-colors" />
                     </button>
                     
@@ -70,7 +70,9 @@ const Topbar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
                     </button>
 
                     <Link 
-                        to={`/dashboard/${guildId}/subscription`}
+                        to={guildId ? `/app/${guildId}/subscription` : "/portal"}
+
+
                         className="bg-premium-gradient px-4 py-2 rounded-xl flex items-center gap-2 text-xs font-bold shadow-lg shadow-premium/20 hover:scale-[1.02] active:scale-95 transition-transform"
                     >
                         <Crown size={14} />

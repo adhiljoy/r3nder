@@ -1,71 +1,173 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { 
+    LayoutDashboard, Plus, Settings, 
+    ArrowRight, Sparkles, Server, 
+    LogOut, UserCircle 
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 
 const GuildSelector = () => {
     const { user, logout } = useAuth();
     const [guilds, setGuilds] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.get("http://localhost:3001/api/guilds", { withCredentials: true })
-            .then(res => setGuilds(res.data))
-            .catch(console.error);
+        const fetchGuilds = async () => {
+            try {
+                const res = await axios.get("http://localhost:3001/api/guilds", { withCredentials: true });
+                setGuilds(res.data.guilds);
+            } catch (err) {
+                console.error("Nexus Sync Failed:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchGuilds();
     }, []);
 
+    const container = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const item = {
+        hidden: { opacity: 0, y: 20 },
+        show: { opacity: 1, y: 0 }
+    };
+
     return (
-        <div className="min-h-screen w-full bg-background p-8 md:p-12">
-            <div className="max-w-6xl mx-auto space-y-12">
-                <header className="flex items-center justify-between">
-                    <div className="space-y-1">
-                        <h1 className="text-3xl font-bold tracking-tight">Select a Server</h1>
-                        <p className="text-white/40">Select which server you'd like to manage.</p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="text-right hidden sm:block">
-                            <p className="font-bold">{user?.username}</p>
-                            <button onClick={logout} className="text-red-400 text-sm hover:underline">Logout</button>
+        <div className="min-h-screen pt-20 pb-32">
+            {/* Background Glows */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
+                <div className="absolute top-0 right-[-10%] w-[500px] h-[500px] bg-primary/10 blur-[120px] rounded-full" />
+                <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-accent/5 blur-[120px] rounded-full" />
+            </div>
+
+            <div className="max-w-7xl mx-auto px-6 space-y-12">
+                {/* Header Section */}
+                <header className="flex flex-col md:flex-row md:items-center justify-between gap-8 py-10 border-b border-white/5">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                                <Server size={18} className="text-white" />
+                            </div>
+                            <h1 className="text-4xl font-black italic tracking-tighter uppercase">Nexus Clusters</h1>
                         </div>
-                        <img 
-                            src={`https://cdn.discordapp.com/avatars/${user?.id}/${user?.avatar}.png`} 
-                            className="w-12 h-12 rounded-full border-2 border-primary/20"
-                            alt="User Profile"
-                        />
+                        <p className="text-white/30 font-medium">Select a nexus environment to orchestrate</p>
+                    </div>
+
+                    <div className="flex items-center gap-4 p-2 rounded-2xl glass-card border-white/5">
+                        <img src={user.avatar} alt="User Avatar" className="w-10 h-10 rounded-xl" />
+                        <div className="pr-4 border-r border-white/10 hidden sm:block">
+                            <p className="text-xs font-black uppercase tracking-widest">{user.username}</p>
+                            <p className="text-[10px] text-white/30 font-medium">Global Orchestrator</p>
+                        </div>
+                        <button 
+                            onClick={logout}
+                            className="p-2 text-white/30 hover:text-red-400 transition-colors"
+                        >
+                            <LogOut size={20} />
+                        </button>
                     </div>
                 </header>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {guilds.map((guild) => (
-                        <Link 
-                            to={`/dashboard/${guild.id}`} 
-                            key={guild.id}
-                            className="glass-card p-6 flex flex-col items-center gap-4 hover:border-primary/50 transition-colors group"
-                        >
-                            <div className="relative">
-                                {guild.icon ? (
-                                    <img 
-                                        src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`} 
-                                        className="w-20 h-20 rounded-3xl shadow-2xl transition-transform group-hover:scale-110"
-                                        alt={guild.name}
-                                    />
-                                ) : (
-                                    <div className="w-20 h-20 rounded-3xl bg-primary flex items-center justify-center text-4xl font-bold">
-                                        {guild.name.charAt(0)}
+                {/* Guild Grid */}
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="h-64 rounded-2xl bg-white/3 animate-pulse border border-white/5" />
+                        ))}
+                    </div>
+                ) : (
+                    <motion.div 
+                        variants={container}
+                        initial="hidden"
+                        animate="show"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                    >
+                        <AnimatePresence>
+                            {guilds.map((guild) => (
+                                <motion.div 
+                                    variants={item}
+                                    key={guild.id}
+                                    className="glass-card p-8 space-y-8 glass-card-hover group relative overflow-hidden"
+                                >
+                                    {/* Status Badge */}
+                                    <div className={`absolute top-6 right-6 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                                        guild.botInstalled 
+                                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" 
+                                            : "bg-white/5 border-white/10 text-white/20"
+                                    }`}>
+                                        {guild.botInstalled ? "ACTIVE" : "SETUP REQ"}
                                     </div>
-                                )}
+
+                                    {/* Guild Info */}
+                                    <div className="flex items-center gap-6">
+                                        <div className="relative">
+                                            <img 
+                                                src={guild.icon || `https://ui-avatars.com/api/?name=${guild.name}&background=7c3aed&color=fff`} 
+                                                alt={guild.name} 
+                                                className="w-16 h-16 rounded-3xl shadow-xl shadow-black/40 group-hover:scale-110 transition-transform duration-500 border border-white/10" 
+                                            />
+                                            {guild.botInstalled && (
+                                                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-lg border-2 border-background-end flex items-center justify-center">
+                                                    <Sparkles size={12} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="space-y-1">
+                                            <h3 className="text-xl font-bold uppercase tracking-tight truncate max-w-[120px] lg:max-w-none">{guild.name}</h3>
+                                            <p className="text-[10px] text-white/30 font-black uppercase tracking-widest">ID: {guild.id}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Button */}
+                                    <div className="pt-4">
+                                        {guild.botInstalled ? (
+                                            <Link 
+                                                to={`/app/${guild.id}`} 
+                                                className="premium-btn w-full group/btn"
+                                            >
+                                                MANAGE NEXUS <ArrowRight className="group-hover/btn:translate-x-1 transition-transform" />
+                                            </Link>
+                                        ) : (
+                                            <a 
+                                                href={`https://discord.com/api/oauth2/authorize?client_id=1488858779784188165&permissions=8&scope=bot%20applications.commands&guild_id=${guild.id}`} 
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="premium-btn-outline w-full group/btn"
+                                            >
+                                                INSTALL R3NDER <Plus className="group-hover/btn:rotate-90 transition-transform" />
+                                            </a>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+
+                        {/* Direct ID Onboarding */}
+                        <motion.div 
+                            variants={item}
+                            className="glass-card p-8 border-dashed border-white/20 flex flex-col items-center justify-center text-center space-y-6 group cursor-pointer hover:border-primary/50 transition-colors"
+                        >
+                            <div className="w-16 h-16 rounded-full bg-white/3 flex items-center justify-center text-white/20 group-hover:scale-110 transition-transform group-hover:text-primary">
+                                <Plus size={32} />
                             </div>
-                            <h2 className="font-bold text-lg text-center truncate w-full">{guild.name}</h2>
-                            <span className="px-3 py-1 bg-green-500/10 text-green-500 text-xs font-bold rounded-full border border-green-500/20">
-                                Bot Active
-                            </span>
-                        </Link>
-                    ))}
-                    {guilds.length === 0 && (
-                        <p className="col-span-full py-20 text-center text-white/20 italic">
-                            No guilds found with administrative permissions.
-                        </p>
-                    )}
-                </div>
+                            <div className="space-y-2">
+                                <h3 className="font-bold uppercase tracking-tight text-white/40 group-hover:text-white transition-colors">Add New Nexus</h3>
+                                <p className="text-[10px] text-white/20 uppercase font-black tracking-widest">Invite to external cluster</p>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
             </div>
         </div>
     );

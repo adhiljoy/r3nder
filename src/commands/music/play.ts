@@ -26,7 +26,7 @@ const play: Command = {
         await interaction.deferReply();
 
         try {
-            const songName = await client.music.play(channel, query, interaction.user.id);
+            const songName = await client.music.play(channel, query, interaction.user.id, interaction.channelId);
 
             const embed = new EmbedBuilder()
                 .setTitle("🎵 Now Playing")

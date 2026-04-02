@@ -1,77 +1,97 @@
 import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Landing from "./pages/Landing";
 import Login from "./pages/Login";
-import GuildSelector from "./pages/GuildSelector";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import DashboardLayout from "./components/layout/DashboardLayout";
-import Skeleton from "./components/ui/Skeleton";
-
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    const { user, loading } = useAuth();
-    if (loading) return <div className="h-screen w-screen flex items-center justify-center bg-background text-white">Loading...</div>;
-    if (!user) return <Navigate to="/" />;
-    return children;
-};
-
-// Lazy Pages
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const UserProfile = lazy(() => import("./pages/UserProfile"));
-const ServerLogs = lazy(() => import("./pages/ServerLogs"));
-const AIControl = lazy(() => import("./pages/AIControl"));
-const Music = lazy(() => import("./pages/Music"));
-const ServerAnalytics = lazy(() => import("./pages/ServerAnalytics"));
-const Subscription = lazy(() => import("./pages/Subscription"));
-const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
-const LogViewer = lazy(() => import("./pages/admin/LogViewer"));
-const Landing = lazy(() => import("./pages/Landing"));
 
 const PageLoader = () => (
-    <div className="space-y-8 animate-in fade-in duration-500">
-        <Skeleton height={100} className="w-full" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Skeleton height={200} />
-            <Skeleton height={200} />
-            <Skeleton height={200} />
-        </div>
-        <Skeleton height={400} className="w-full" />
+    <div className="h-screen w-screen flex flex-col items-center justify-center bg-background-start text-white gap-6">
+        <div className="w-16 h-16 border-t-2 border-primary rounded-full animate-spin shadow-2xl shadow-primary/20" />
+        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20 animate-pulse text-center">Syncing Nexus Pulse...</p>
     </div>
 );
 
-function App() {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    const { user, loading } = useAuth();
+    if (loading) return <PageLoader />;
+    if (!user) return <Navigate to="/login" />;
+    return children;
+};
+
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+    const { user, loading } = useAuth();
+    if (loading) return <PageLoader />;
+    if (!user || !(user as any).isAdmin) return <Navigate to="/app" />;
+    return children;
+};
+
+// High-Fidelity SaaS Pages
+const GuildSelector = lazy(() => import("./pages/GuildSelector"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const AdminOverview = lazy(() => import("./pages/AdminOverview"));
+const AdminLogs = lazy(() => import("./pages/AdminLogs"));
+const UserProfile = lazy(() => import("./pages/UserProfile"));
+
+const App = () => {
     return (
         <AuthProvider>
             <BrowserRouter>
                 <Routes>
-                    <Route path="/" element={<Suspense fallback={<PageLoader />}><Landing /></Suspense>} />
+                    {/* Public SaaS Entry */}
+                    <Route path="/" element={<Landing />} />
                     <Route path="/login" element={<Login />} />
-                    <Route path="/guilds" element={<ProtectedRoute><GuildSelector /></ProtectedRoute>} />
-                    <Route 
-                        path="/dashboard/:guildId/*" 
-                        element={
-                            <ProtectedRoute>
-                                <DashboardLayout>
-                                    <Suspense fallback={<PageLoader />}>
-                                        <Routes>
-                                            <Route path="/" element={<Dashboard />} />
-                                            <Route path="profile" element={<UserProfile />} />
-                                            <Route path="server-logs" element={<ServerLogs />} />
-                                            <Route path="ai" element={<AIControl />} />
-                                            <Route path="music" element={<Music />} />
-                                            <Route path="analytics" element={<ServerAnalytics />} />
-                                            <Route path="subscription" element={<Subscription />} />
-                                            <Route path="settings" element={<div>General Settings</div>} />
-                                            <Route path="admin/overview" element={<AdminOverview />} />
-                                            <Route path="admin/logs" element={<LogViewer />} />
-                                        </Routes>
-                                    </Suspense>
-                                </DashboardLayout>
-                            </ProtectedRoute>
-                        } 
-                    />
+                    
+                    {/* User Nexus Hub */}
+                    <Route path="/app" element={
+                        <ProtectedRoute>
+                            <Suspense fallback={<PageLoader />}>
+                                <GuildSelector />
+                            </Suspense>
+                        </ProtectedRoute>
+                    } />
+
+                    {/* Server Command Suite */}
+                    <Route path="/app/:guildId/*" element={
+                        <ProtectedRoute>
+                            <DashboardLayout>
+                                <Suspense fallback={<PageLoader />}>
+                                    <Routes>
+                                        <Route index element={<Dashboard />} />
+                                        <Route path=":tab" element={<Dashboard />} />
+                                        <Route path="profile" element={<UserProfile />} />
+                                        <Route path="*" element={<Navigate to="" replace />} />
+                                    </Routes>
+
+                                </Suspense>
+                            </DashboardLayout>
+                        </ProtectedRoute>
+                    } />
+
+                    {/* Global Admin Core */}
+                    <Route path="/core/*" element={
+                        <AdminRoute>
+                            <DashboardLayout isCore>
+                                <Suspense fallback={<PageLoader />}>
+                                    <Routes>
+                                        <Route path="overview" element={<AdminOverview />} />
+                                        <Route path="analytics" element={<AdminOverview />} />
+                                        <Route path="status" element={<AdminOverview />} />
+                                        <Route path="logs" element={<AdminLogs />} />
+                                        <Route path="*" element={<Navigate to="overview" replace />} />
+                                    </Routes>
+
+                                </Suspense>
+                            </DashboardLayout>
+                        </AdminRoute>
+                    } />
+
+                    {/* Final Catch-All */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </BrowserRouter>
         </AuthProvider>
     );
-}
+};
 
 export default App;

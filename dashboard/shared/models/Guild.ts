@@ -30,9 +30,16 @@ export interface IGuild extends Document {
         inactiveEngage: boolean;
         engagementInterval: number;
         personality: "normal" | "funny" | "coder" | "strict";
+        allowedUsers: string[];
     };
+
     logChannelId: string | null;
+    appearance: {
+        accentColor: string;
+        themeMode: "dark" | "glass" | "amoled";
+    };
 }
+
 
 const GuildSchema: Schema = new Schema({
     guildId: { type: String, required: true, unique: true },
@@ -64,8 +71,15 @@ const GuildSchema: Schema = new Schema({
         inactiveEngage: { type: Boolean, default: true },
         engagementInterval: { type: Number, default: 4 },
         personality: { type: String, enum: ["normal", "funny", "coder", "strict"], default: "normal" },
+        allowedUsers: { type: [String], default: [] },
     },
+
     logChannelId: { type: String, default: null },
+    appearance: {
+        accentColor: { type: String, default: "#5865F2" },
+        themeMode: { type: String, enum: ["dark", "glass", "amoled"], default: "glass" },
+    },
 });
+
 
 export const Guild = mongoose.model<IGuild>("Guild", GuildSchema);
