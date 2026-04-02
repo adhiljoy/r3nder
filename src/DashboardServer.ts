@@ -15,8 +15,9 @@ export const startDashboard = (client: R3NDERClient) => {
     dotenv.config({ path: path.join(__dirname, "../.env") });
 
     const app = express();
-    const port = 3001;
+    const port = process.env.PORT || 3001;
     const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+
 
 // CORS - Essential for React Dashboard
 app.use(cors({
