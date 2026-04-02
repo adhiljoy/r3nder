@@ -17,7 +17,7 @@ const AdminOverview = () => {
     });
 
     useEffect(() => {
-        axios.get("https://YOUR_RENDER_BACKEND_URL/api/admin/stats", { withCredentials: true })
+        axios.get("https://ACTUAL_RENDER_URL/api/admin/stats", { withCredentials: true })
             .then(res => setStats(res.data))
             .catch(() => {});
     }, []);

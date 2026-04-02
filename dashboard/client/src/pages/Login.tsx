@@ -7,7 +7,7 @@ const Login = () => {
     if (!loading && user) return <Navigate to="/portal" />;
 
     const handleLogin = () => {
-        const API_URL = import.meta.env.VITE_API_URL || "https://YOUR_RENDER_BACKEND_URL";
+        const API_URL = import.meta.env.VITE_API_URL || "https://ACTUAL_RENDER_URL";
         window.location.href = `${API_URL}/auth/discord`;
     };
 

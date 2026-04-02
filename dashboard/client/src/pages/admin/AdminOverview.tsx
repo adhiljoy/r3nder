@@ -11,7 +11,7 @@ const AdminOverview = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const API_URL = import.meta.env.VITE_API_URL || "https://YOUR_RENDER_BACKEND_URL";
+        const API_URL = import.meta.env.VITE_API_URL || "https://ACTUAL_RENDER_URL";
         axios.get(`${API_URL}/api/admin/analytics/overview`, { withCredentials: true })
             .then(res => {
                 setStats(res.data);
