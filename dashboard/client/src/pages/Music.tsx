@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
     Play, Pause, SkipForward, SkipBack, Volume2, Music as MusicIcon, 
-    ListMusic, Shuffle, Repeat 
+    ListMusic, Shuffle, Repeat, Activity, Radio, Cpu, ShieldAlert,
+    ExternalLink, RefreshCw, Zap, Disc
 } from "lucide-react";
 
 interface MusicStatus {
@@ -32,215 +34,383 @@ const Music = () => {
     const { guildId } = useParams();
     const [status, setStatus] = useState<MusicStatus | null>(null);
     const [loading, setLoading] = useState(true);
+    const [smoothProgress, setSmoothProgress] = useState(0);
+    const [isHovering, setIsHovering] = useState(false);
+    
+    const progressRef = useRef<number>(0);
+    const lastUpdateRef = useRef<number>(Date.now());
 
     const fetchStatus = async () => {
         try {
             const res = await axios.get(`http://localhost:3001/api/guild/${guildId}/music`, { withCredentials: true });
-            setStatus(res.data);
+            const data = res.data;
+            setStatus(data);
+            
+            if (data.track) {
+                progressRef.current = data.track.progress;
+                lastUpdateRef.current = Date.now();
+                setSmoothProgress(data.track.progress);
+            }
         } catch (error) {
-            console.error(error);
+            console.error("Fetch failed:", error);
         } finally {
             setLoading(false);
         }
     };
 
+    // Live Polking (3s)
     useEffect(() => {
         fetchStatus();
-        const interval = setInterval(fetchStatus, 3000); // 3s live polling
+        const interval = setInterval(fetchStatus, 3000);
         return () => clearInterval(interval);
     }, [guildId]);
+
+    // Smooth Progress Interpolation (100ms)
+    useEffect(() => {
+        if (!status?.playing || status.paused) return;
+
+        const interval = setInterval(() => {
+            const elapsed = (Date.now() - lastUpdateRef.current) / 1000;
+            const projected = progressRef.current + elapsed;
+            
+            if (status.track && projected < status.track.totalSeconds) {
+                setSmoothProgress(projected);
+            }
+        }, 100);
+
+        return () => clearInterval(interval);
+    }, [status?.playing, status?.paused]);
 
     const handleControl = async (action: string, value?: any) => {
         try {
             await axios.post(`http://localhost:3001/api/guild/${guildId}/music/control`, { action, value }, { withCredentials: true });
-            fetchStatus();
+            // Optimistic update for UI feel
+            if (action === "pause") setStatus(prev => prev ? { ...prev, paused: true } : null);
+            if (action === "resume") setStatus(prev => prev ? { ...prev, paused: false } : null);
+            if (action === "volume") setStatus(prev => prev ? { ...prev, volume: value } : null);
+            
+            setTimeout(fetchStatus, 500); // Verify with server
         } catch (error) {
             console.error("Control failed:", error);
         }
     };
 
+    const formatTime = (seconds: number) => {
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m}:${s.toString().padStart(2, "0")}`;
+    };
+
     if (loading) return (
-        <div className="h-[60vh] flex items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-                <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                <p className="text-white/40 font-bold tracking-widest text-[10px] uppercase">Syncing Sonic Core v2.0</p>
+        <div className="h-[70vh] flex flex-col items-center justify-center gap-8">
+            <div className="relative">
+                <div className="w-24 h-24 border-t-2 border-primary rounded-full animate-spin" />
+                <div className="absolute inset-2 border-r-2 border-accent rounded-full animate-spin-slow" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <Radio className="text-primary animate-pulse" size={32} />
+                </div>
+            </div>
+            <div className="space-y-1 text-center">
+                <p className="text-white/40 font-black tracking-[0.3em] text-[11px] uppercase">R3NDER Kernel Sync</p>
+                <p className="text-[10px] text-white/10 font-bold uppercase">Establishing Bit-Perfect Link</p>
             </div>
         </div>
     );
 
     if (!status?.playing) {
         return (
-            <div className="h-[60vh] flex flex-col items-center justify-center gap-6 animate-in fade-in zoom-in duration-700">
-                <div className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center relative overflow-hidden group">
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }} 
+                animate={{ opacity: 1, scale: 1 }}
+                className="h-[60vh] flex flex-col items-center justify-center gap-8"
+            >
+                <div className="w-32 h-32 rounded-[2.5rem] bg-white/5 border border-white/10 flex items-center justify-center relative group">
                     <div className="absolute inset-0 bg-linear-to-tr from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                    <MusicIcon className="text-white/20 group-hover:text-primary transition-colors duration-500" size={40} />
+                    <MusicIcon className="text-white/10 group-hover:text-primary group-hover:scale-110 transition-all duration-500" size={48} />
                 </div>
-                <div className="text-center space-y-2">
-                    <h3 className="text-2xl font-black italic tracking-tighter">SILENCE IS GOLDEN</h3>
-                    <p className="text-white/40 max-w-xs mx-auto">The audio cluster is currently idle. Start a session from Discord using <span className="text-primary">/play</span>.</p>
+                <div className="text-center max-w-sm space-y-4">
+                    <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none">The Void Awaits</h2>
+                    <p className="text-white/30 text-sm font-medium">The high-fidelity audio engine is currently in standby. Use <span className="text-primary font-bold">/play</span> in Discord to prime the kernel.</p>
                 </div>
-            </div>
+            </motion.div>
         );
     }
 
     const { track, queue, paused, volume, metrics } = status;
 
     return (
-        <div className="space-y-10 animate-in fade-in duration-700 pb-20">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="flex flex-col gap-2">
-                    <h2 className="text-5xl font-black tracking-tight leading-none italic">SONIC OPS</h2>
-                    <p className="text-white/40 text-lg font-medium">Global music sync and kernel monitoring.</p>
-                </div>
-                
-                {/* Elite Debug Panel */}
-                <div className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-xl">
-                    <div className="px-4 border-r border-white/5">
-                        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Retries</p>
-                        <p className="text-xl font-bold text-orange-400">{metrics.retries}</p>
-                    </div>
-                    <div className="px-4 border-r border-white/5">
-                        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Fallbacks</p>
-                        <p className="text-xl font-bold text-yellow-400">{metrics.fallbacks}</p>
-                    </div>
-                    <div className="px-4">
-                        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Failures</p>
-                        <p className="text-xl font-bold text-red-500">{metrics.failures}</p>
-                    </div>
-                </div>
-            </div>
+        <div className="relative min-h-[90vh]">
+            {/* Dynamic Ambient Background */}
+            <AnimatePresence mode="wait">
+                <motion.div 
+                    key={track?.thumbnail}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.15 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1.5 }}
+                    className="fixed inset-0 pointer-events-none z-0"
+                    style={{ 
+                        backgroundImage: `url(${track?.thumbnail})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        filter: 'blur(120px) saturate(2)'
+                    }}
+                />
+            </AnimatePresence>
 
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                {/* Now Playing Panel */}
-                <div className="xl:col-span-2 space-y-8">
-                    <div className="glass-card overflow-hidden relative group">
-                        <div className="absolute inset-0 bg-linear-to-br from-primary/10 via-transparent to-transparent pointer-events-none" />
-                        
-                        <div className="p-8 md:p-12 space-y-10">
-                            <div className="flex flex-col md:flex-row gap-10 items-center md:items-start text-center md:text-left">
-                                <div className="relative shrink-0">
-                                    <div className="absolute -inset-4 bg-primary/20 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                                    <img 
-                                        src={track?.thumbnail} 
-                                        className="w-56 h-56 rounded-4xl object-cover shadow-2xl relative z-10 hover:scale-105 transition-transform duration-700" 
-                                        alt="Thumbnail"
-                                    />
+            <div className="relative z-10 space-y-12 pb-24">
+                {/* Header Stats */}
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-5xl font-black italic tracking-tighter uppercase leading-none">Sonic Ops</h1>
+                            <span className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                                Kernel v2.0 Live
+                            </span>
+                        </div>
+                        <p className="text-white/40 font-medium text-lg">Real-time cluster oversight and audio orchestration.</p>
+                    </div>
+
+                    <div className="flex items-stretch gap-2">
+                        {[
+                            { label: 'Retries', value: metrics.retries, icon: RefreshCw, color: 'text-orange-400' },
+                            { label: 'Fallbacks', value: metrics.fallbacks, icon: Zap, color: 'text-yellow-400' },
+                            { label: 'Failures', value: metrics.failures, icon: ShieldAlert, color: 'text-red-500' }
+                        ].map((stat, i) => (
+                            <div key={i} className="px-6 py-3 bg-white/5 backdrop-blur-3xl border border-white/5 rounded-2xl flex flex-col items-center justify-center gap-1 min-w-[100px]">
+                                <stat.icon className={`${stat.color} opacity-50`} size={14} />
+                                <span className="text-xl font-bold leading-none">{stat.value}</span>
+                                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">{stat.label}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                    {/* Main Core - Player */}
+                    <div className="xl:col-span-8 flex flex-col gap-8">
+                        <div className="p-8 lg:p-14 glass-card relative overflow-hidden group min-h-[500px] flex flex-col justify-between">
+                            <div className="absolute top-0 right-0 p-8 flex items-center gap-4 z-20">
+                                <Activity className="text-primary/40 animate-pulse" />
+                                <div className="h-6 w-px bg-white/5" />
+                                <div className="flex items-center gap-2">
+                                    <Cpu className="text-white/20" size={16} />
+                                    <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">Neural Sync</span>
                                 </div>
-                                
-                                <div className="flex-1 space-y-6 z-10">
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-center md:justify-start gap-4">
-                                            <span className="flex items-center gap-2 bg-primary/20 text-primary text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-primary/20">
-                                                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
-                                                Live Sync
-                                            </span>
-                                            <span className="text-[10px] font-black text-white/20 uppercase tracking-widest">Req: {track?.requestedBy || "System"}</span>
+                            </div>
+                            
+                            <div className="flex flex-col md:flex-row gap-12 items-center md:items-start z-10">
+                                {/* Thumbnail Cluster */}
+                                <div className="relative group/thumb scale-95 hover:scale-100 transition-transform duration-700 shrink-0">
+                                    <div className="absolute -inset-8 bg-primary/20 blur-[80px] rounded-full opacity-0 group-hover/thumb:opacity-100 transition-opacity duration-1000" />
+                                    <div className="relative z-10">
+                                        <img 
+                                            src={track?.thumbnail} 
+                                            alt="Cover"
+                                            className="w-64 h-64 lg:w-80 lg:h-80 rounded-[3rem] object-cover shadow-2xl relative z-10"
+                                        />
+                                        <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl flex items-center justify-center z-20 group-hover/thumb:rotate-12 transition-transform duration-500">
+                                            <Disc className="text-primary animate-spin-slow" />
                                         </div>
-                                        <div>
-                                            <h3 className="text-4xl font-black leading-tight line-clamp-2">{track?.title}</h3>
-                                            <p className="text-white/40 text-xl font-semibold">{track?.author}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex-1 space-y-12 w-full text-center md:text-left">
+                                    <div className="space-y-4">
+                                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                                            <span className="flex items-center gap-2 text-[10px] font-black text-white/30 uppercase tracking-widest">
+                                                <Radio size={14} /> Origin Stream
+                                            </span>
+                                            <div className="w-1.5 h-1.5 bg-white/10 rounded-full" />
+                                            <span className="text-[10px] font-black text-primary/60 uppercase tracking-widest flex items-center gap-2">
+                                                <RefreshCw size={14} /> HQ Link Active
+                                            </span>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h2 className="text-4xl lg:text-6xl font-black italic tracking-tighter leading-tight line-clamp-2">
+                                                {track?.title}
+                                            </h2>
+                                            <p className="text-white/40 text-xl lg:text-2xl font-bold tracking-tight">
+                                                {track?.author}
+                                            </p>
                                         </div>
                                     </div>
 
-                                    {/* Progress */}
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between font-black text-[10px] text-white/20 tracking-tighter uppercase px-1">
-                                            <span>{track?.progress}</span>
+                                    {/* Progress Core */}
+                                    <div className="space-y-4 max-w-2xl">
+                                        <div className="flex items-center justify-between text-[11px] font-black text-white/20 uppercase tracking-widest">
+                                            <span>{formatTime(smoothProgress)}</span>
+                                            <div className="flex items-center gap-2">
+                                                <Activity size={12} className="text-primary animate-pulse" />
+                                                <span>Live Matrix</span>
+                                            </div>
                                             <span>{track?.duration}</span>
                                         </div>
-                                        <div className="h-2 bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/5">
-                                            <div 
-                                                className="h-full bg-linear-to-r from-primary via-accent to-primary bg-size-[200%_auto] animate-gradient transition-all duration-1000 shadow-[0_0_15px_rgba(139,92,246,0.5)]" 
-                                                style={{ width: `${(track?.progress! / track?.totalSeconds!) * 100}%` }}
-                                            />
+                                        <div 
+                                            className="h-3 md:h-4 bg-white/5 rounded-2xl p-1 relative overflow-hidden border border-white/5 group/bar cursor-pointer"
+                                            onMouseEnter={() => setIsHovering(true)}
+                                            onMouseLeave={() => setIsHovering(false)}
+                                        >
+                                            <motion.div 
+                                                className="h-full bg-linear-to-r from-primary via-premium to-accent bg-[length:400%_100%] animate-gradient rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.3)] relative"
+                                                initial={false}
+                                                animate={{ width: `${(smoothProgress / (track?.totalSeconds || 1)) * 100}%` }}
+                                                transition={{ type: "tween", ease: "linear", duration: 0.1 }}
+                                            >
+                                                <div className="absolute top-0 right-0 bottom-0 w-8 bg-linear-to-r from-transparent to-white/20" />
+                                            </motion.div>
                                         </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center justify-center md:justify-start gap-4">
+                                        <div className="flex -space-x-2">
+                                            <div className="w-8 h-8 rounded-full bg-primary/20 border border-white/10 flex items-center justify-center overflow-hidden">
+                                                <span className="text-[10px] font-black italic">R</span>
+                                            </div>
+                                        </div>
+                                        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">
+                                            Initiated by <span className="text-white/60">{track?.requestedBy || "Core Logic"}</span>
+                                        </p>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Controls */}
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-10 pt-4 z-10 relative">
-                                <div className="flex items-center gap-8 lg:gap-12">
-                                    <button onClick={() => handleControl("shuffle")} className="text-white/20 hover:text-white transition-all transform hover:rotate-12"><Shuffle size={24} /></button>
-                                    <button className="text-white/20 hover:text-white transition-all transform hover:-translate-x-1"><SkipBack size={32} /></button>
-                                    <button 
+                            {/* Control Complex */}
+                            <div className="pt-12 flex flex-col lg:flex-row items-center justify-between gap-12 z-10">
+                                <div className="flex items-center justify-center gap-8 lg:gap-14">
+                                    <motion.button whileHover={{ rotate: 15 }} onClick={() => handleControl("shuffle")} className="text-white/20 hover:text-primary transition-colors"><Shuffle size={24} /></motion.button>
+                                    <motion.button whileHover={{ x: -2 }} className="text-white/20 hover:text-white transition-colors opacity-50 cursor-not-allowed"><SkipBack size={32} /></motion.button>
+                                    
+                                    <motion.button 
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.95 }}
                                         onClick={() => handleControl(paused ? "resume" : "pause")}
-                                        className="w-20 h-20 rounded-3xl bg-white text-black flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-2xl shadow-primary/20 group/play"
+                                        className="w-24 h-24 rounded-[2rem] bg-white text-black flex items-center justify-center shadow-2xl shadow-primary/30 transition-all group/play"
                                     >
-                                        {paused ? <Play className="ml-1" fill="currentColor" size={32} /> : <Pause fill="currentColor" size={32} />}
-                                    </button>
-                                    <button onClick={() => handleControl("skip")} className="text-white/20 hover:text-white transition-all transform hover:translate-x-1"><SkipForward size={32} /></button>
-                                    <button onClick={() => handleControl("stop")} className="text-white/20 hover:text-red-500 transition-all"><Repeat size={24} /></button>
+                                        {paused ? <Play fill="currentColor" size={40} className="ml-1" /> : <Pause fill="currentColor" size={40} />}
+                                    </motion.button>
+
+                                    <motion.button whileHover={{ x: 2 }} onClick={() => handleControl("skip")} className="text-white/20 hover:text-white transition-colors"><SkipForward size={32} /></motion.button>
+                                    <motion.button whileHover={{ rotate: -15 }} onClick={() => handleControl("stop")} className="text-white/20 hover:text-red-500 transition-colors"><Repeat size={24} /></motion.button>
                                 </div>
-                                
-                                <div className="flex items-center gap-6 bg-white/5 px-8 py-4 rounded-3xl border border-white/5 w-full md:w-auto">
-                                    <Volume2 size={24} className="text-white/40" />
+
+                                <div className="flex items-center gap-6 bg-black/40 px-8 py-5 rounded-[2rem] border border-white/5 w-full lg:w-72 group/vol backdrop-blur-xl">
+                                    <Volume2 className="text-white/20 group-hover/vol:text-primary transition-colors" size={20} />
                                     <input 
-                                        type="range" 
-                                        min="0" 
-                                        max="150" 
+                                        type="range"
+                                        min="0"
+                                        max="150"
                                         value={volume}
                                         onChange={(e) => handleControl("volume", parseInt(e.target.value))}
-                                        className="flex-1 md:w-32 accent-primary h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
+                                        className="flex-1 accent-primary h-1 bg-white/5 rounded-full appearance-none cursor-pointer"
                                     />
+                                    <span className="text-[10px] font-black text-white/20 tracking-widest">{volume}%</span>
                                 </div>
+                            </div>
+
+                            {/* Synthetic Spectral Visualizer */}
+                            <div className="absolute bottom-0 left-0 right-0 flex items-end justify-center gap-0.5 px-4 h-32 pointer-events-none opacity-20">
+                                {[...Array(64)].map((_, i) => (
+                                    <motion.div 
+                                        key={i}
+                                        className="flex-1 bg-primary rounded-t-full"
+                                        animate={{ 
+                                            height: paused ? 4 : [8, Math.random() * 80 + 10, 8],
+                                            opacity: paused ? 0.2 : [0.3, 0.8, 0.3]
+                                        }}
+                                        transition={{ 
+                                            duration: 0.8 + Math.random(), 
+                                            repeat: Infinity,
+                                            ease: "easeInOut"
+                                        }}
+                                    />
+                                ))}
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Queue View */}
-                <div className="space-y-6">
-                    <div className="glass-card flex flex-col h-[640px] relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-linear-to-b from-primary/5 to-transparent pointer-events-none" />
-                        
-                        <div className="p-8 border-b border-white/5 flex items-center justify-between z-10">
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                                    <ListMusic className="text-primary" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-black italic tracking-tight">QUEUED ITEMS</h3>
-                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">{queue.length} Tracks Syncing</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-4 space-y-3 z-10 custom-scrollbar">
-                            {queue.map((song, i) => (
-                                <div key={i} className="p-5 rounded-2xl bg-white/2 border border-white/5 hover:bg-white/5 hover:border-white/10 transition-all group/item flex items-center gap-5">
-                                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 group-hover/item:bg-primary/20 transition-colors">
-                                        <span className="text-xs font-black text-white/20 group-hover/item:text-primary transition-colors italic">0{i+1}</span>
+                    {/* Secondary Core - Queue */}
+                    <div className="xl:col-span-4 flex flex-col gap-6">
+                        <div className="glass-card flex flex-col h-full min-h-[640px] relative overflow-hidden">
+                            <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center">
+                                        <ListMusic className="text-primary" size={24} />
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-bold text-base truncate tracking-tight">{song.title}</p>
-                                        <div className="flex items-center gap-3 mt-1">
-                                            <span className="text-[10px] text-white/20 font-black uppercase tracking-widest">{song.duration}</span>
-                                            <span className="w-1 h-1 bg-white/10 rounded-full" />
-                                            <span className="text-[10px] text-primary/60 font-black uppercase tracking-widest truncate">{song.requestedBy || "Core"}</span>
+                                    <div>
+                                        <h3 className="text-xl font-black italic tracking-tight">Sonic Queue</h3>
+                                        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">{queue.length} Tracks In Transit</p>
+                                    </div>
+                                </div>
+                                <Activity size={20} className="text-white/10" />
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
+                                {queue.map((song, i) => (
+                                    <motion.div 
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        key={i} 
+                                        className="p-5 rounded-2.5xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-primary/20 transition-all flex items-center gap-5 group"
+                                    >
+                                        <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center shrink-0 group-hover:border-primary/50 group-hover:bg-primary/10 transition-all">
+                                            <span className="text-[10px] font-black text-white/20 group-hover:text-primary transition-colors">/0{i+1}</span>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold text-base truncate tracking-tight group-hover:text-primary transition-colors">{song.title}</p>
+                                            <div className="flex items-center gap-3 mt-1.5 opacity-40">
+                                                <span className="text-[9px] font-black uppercase tracking-widest">{song.duration}</span>
+                                                <div className="w-1 h-1 bg-white/20 rounded-full" />
+                                                <span className="text-[9px] font-black uppercase tracking-widest truncate max-w-[100px]">{song.requestedBy || "Core"}</span>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+
+                                {queue.length === 0 && (
+                                    <div className="h-full flex flex-col items-center justify-center gap-6 py-32">
+                                        <div className="relative">
+                                            <div className="w-20 h-20 rounded-full bg-white/5 border border-dashed border-white/20 animate-spin-slow" />
+                                            <MusicIcon className="absolute inset-0 m-auto text-white/10" size={32} />
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="font-black text-[10px] uppercase tracking-widest text-white/20">Pipeline Empty</p>
+                                            <p className="text-[9px] text-white/10 uppercase mt-1">Awaiting New Sonic Commands</p>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                            {queue.length === 0 && (
-                                <div className="h-full flex flex-col items-center justify-center gap-4 text-white/10 italic py-20">
-                                    <ListMusic size={40} />
-                                    <p className="font-black text-sm tracking-widest uppercase">Kernel Queue Clear</p>
-                                </div>
-                            )}
-                        </div>
+                                )}
+                            </div>
 
-                        <div className="p-8 bg-white/5 border-t border-white/5 z-10">
-                            <button 
-                                onClick={() => handleControl("stop")}
-                                className="w-full py-4 rounded-2xl bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:text-white text-red-500 font-black text-[10px] uppercase tracking-widest transition-all duration-500"
-                            >
-                                TERMINATE AUDIO SESSION
-                            </button>
+                            <div className="p-8 bg-white/[0.02] border-t border-white/5">
+                                <motion.button 
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => handleControl("stop")}
+                                    className="w-full py-5 rounded-2.5xl bg-red-500/10 border border-red-500/20 hover:bg-red-500 text-red-500 hover:text-white font-black text-[10px] uppercase tracking-widest transition-all duration-500 flex items-center justify-center gap-3"
+                                >
+                                    <Zap size={16} />
+                                    Terminate Kernel Session
+                                </motion.button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Custom Scrollbar Styles */}
+            <style dangerouslySetInnerHTML={{ __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { 
+                    background: rgba(139, 92, 246, 0.1); 
+                    border-radius: 10px; 
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { 
+                    background: rgba(139, 92, 246, 0.3); 
+                }
+            `}} />
         </div>
     );
 };
