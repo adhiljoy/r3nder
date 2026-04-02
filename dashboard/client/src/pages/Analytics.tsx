@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { 
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-    BarChart, Bar, Cell 
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
+
 import { TrendingUp, Users, MessageSquare, BarChart3 } from "lucide-react";
 
 const Analytics = () => {
@@ -13,10 +13,12 @@ const Analytics = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        axios.get(`http://localhost:3001/api/guild/${guildId}/analytics`, { withCredentials: true })
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+        axios.get(`${API_URL}/api/guild/${guildId}/analytics`, { withCredentials: true })
             .then(res => {
                 const formatted = res.data.map((d: any) => ({
                     ...d,
+
                     name: new Date(d.date).toLocaleDateString(undefined, { weekday: 'short' }),
                     fullDate: new Date(d.date).toLocaleDateString()
                 }));

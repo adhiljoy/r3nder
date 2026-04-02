@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Terminal, Shield, Clock, Hash, Zap } from "lucide-react";
+import { Terminal, Shield, Clock, Zap } from "lucide-react";
 import { motion } from "framer-motion";
+
 
 const AdminLogs = () => {
     const [logs, setLogs] = useState<any[]>([]);
@@ -15,10 +16,12 @@ const AdminLogs = () => {
 
     const fetchLogs = async () => {
         try {
-            const res = await axios.get("http://localhost:3001/api/admin/logs", { withCredentials: true });
+            const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+            const res = await axios.get(`${API_URL}/api/admin/logs`, { withCredentials: true });
             setLogs(res.data);
             setLoading(false);
         } catch (error) {
+
             console.error("Forensic Pulse Failed:", error);
         }
     };

@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { 
-    LayoutDashboard, Plus, Settings, 
-    ArrowRight, Sparkles, Server, 
-    LogOut, UserCircle 
+    Plus, ArrowRight, Sparkles, Server, 
+    LogOut 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
@@ -17,7 +16,8 @@ const GuildSelector = () => {
     useEffect(() => {
         const fetchGuilds = async () => {
             try {
-                const res = await axios.get("http://localhost:3001/api/guilds", { withCredentials: true });
+                const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+                const res = await axios.get(`${API_URL}/api/guilds`, { withCredentials: true });
                 setGuilds(res.data.guilds);
             } catch (err) {
                 console.error("Nexus Sync Failed:", err);
