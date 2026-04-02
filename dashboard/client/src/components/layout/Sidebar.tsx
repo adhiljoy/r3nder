@@ -1,10 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { 
     LayoutDashboard, Zap, Music, Settings, 
-    Activity, Sparkles, ShieldCheck, LogOut, 
-    User, Terminal, X, Globe, BarChart3, 
-    ShieldAlert, Info, Cpu, Monitor
+    Activity, ShieldCheck, LogOut, 
+    Terminal, X, Globe, BarChart3, 
+    ShieldAlert
+
 } from "lucide-react";
+
 import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 
