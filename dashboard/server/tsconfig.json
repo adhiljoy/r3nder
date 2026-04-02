@@ -8,13 +8,12 @@
     "baseUrl": "../../",
     "paths": {
       "@shared/*": ["dashboard/server/src/shared/*"],
-      "@database/*": ["dashboard/shared/models/*"],
-      "@utils/*": ["dashboard/shared/utils/*"],
+      "@database/*": ["src/database/shared/*"],
+      "@utils/*": ["src/database/shared/utils/*"],
       "@config/*": ["src/config/*"],
       "@services/*": ["src/services/*"],
       "@routes/*": ["src/routes/*"]
     },
-
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -24,6 +23,6 @@
     "resolveJsonModule": true,
     "lib": ["ESNext"]
   },
-  "include": ["src/**/*", "../../dashboard/shared/**/*", "../../src/**/*"],
+  "include": ["src/**/*", "dashboard/server/src/**/*", "src/database/shared/**/*"],
   "exclude": ["node_modules"]
 }

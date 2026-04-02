@@ -325,9 +325,10 @@ app.get("/api/guilds", isAuth, async (req: any, res) => {
             botPresence = response.data as Record<string, boolean>;
 
         } catch (error) {
-            console.error("[Dashboard] Bot presence API check failed, falling back to database detection.");
             const botGuilds = await Guild.find({ guildId: { $in: manageGuilds.map((g: any) => g.id) } });
-            botGuilds.forEach(bg => { botPresence[bg.guildId] = true; });
+            botGuilds.forEach((bg: any) => { botPresence[bg.guildId] = true; });
+
+
         }
 
         const result = manageGuilds.map((g: any) => ({
