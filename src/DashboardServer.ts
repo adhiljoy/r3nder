@@ -244,7 +244,15 @@ app.get("/api/admin/logs", isAuth, async (req, res) => {
     res.json(samples);
 });
 
+// MONOLITHIC FINALITY: Serving Dashboard Assets Directly
+app.use(express.static(path.join(__dirname, "../dashboard/client/dist")));
+
+app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "../dashboard/client/dist/index.html"));
+});
+
     app.listen(port, () => {
+
         console.log(`[R3NDER Monolith] Dashboard Server running on port ${port}`);
         console.log(`[R3NDER Monolith] Shared Bot Instance Ready: ${client.user?.tag || "Initializing..."}`);
     });
