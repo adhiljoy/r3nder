@@ -15,7 +15,7 @@ const UserProfile = () => {
     const [reminderTime, setReminderTime] = useState("");
 
     const fetchProfile = () => {
-        axios.get("http://localhost:3001/api/user/profile", { withCredentials: true })
+        axios.get("https://YOUR_RENDER_BACKEND_URL/api/user/profile", { withCredentials: true })
             .then(res => {
                 setProfile(res.data);
                 if (res.data.birthday) {
@@ -35,13 +35,13 @@ const UserProfile = () => {
 
     const updateBirthday = (e: React.FormEvent) => {
         e.preventDefault();
-        axios.post("http://localhost:3001/api/user/birthday", { birthday }, { withCredentials: true })
+        axios.post("https://YOUR_RENDER_BACKEND_URL/api/user/birthday", { birthday }, { withCredentials: true })
             .then(() => fetchProfile());
     };
 
     const addReminder = (e: React.FormEvent) => {
         e.preventDefault();
-        axios.post("http://localhost:3001/api/user/reminder", { message: reminderMessage, time: reminderTime }, { withCredentials: true })
+        axios.post("https://YOUR_RENDER_BACKEND_URL/api/user/reminder", { message: reminderMessage, time: reminderTime }, { withCredentials: true })
             .then(() => {
                 setReminderMessage("");
                 setReminderTime("");
@@ -50,7 +50,7 @@ const UserProfile = () => {
     };
 
     const deleteReminder = (id: string) => {
-        axios.delete(`http://localhost:3001/api/user/reminder/${id}`, { withCredentials: true })
+        axios.delete(`https://YOUR_RENDER_BACKEND_URL/api/user/reminder/${id}`, { withCredentials: true })
             .then(() => fetchProfile());
     };
 

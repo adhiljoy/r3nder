@@ -33,7 +33,7 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+                const API_URL = import.meta.env.VITE_API_URL || "https://YOUR_RENDER_BACKEND_URL";
                 const res = await axios.get(`${API_URL}/api/guild/${guildId}/settings`, { withCredentials: true });
                 setSettings(res.data);
                 setLoading(false);
@@ -47,7 +47,7 @@ const Dashboard = () => {
     const saveSettings = async () => {
         setSaving(true);
         try {
-            const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+            const API_URL = import.meta.env.VITE_API_URL || "https://YOUR_RENDER_BACKEND_URL";
             await axios.post(`${API_URL}/api/guild/${guildId}/settings`, settings, { withCredentials: true });
             setMessage("Settings synced successfully! 🌌");
 

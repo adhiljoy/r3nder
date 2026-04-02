@@ -29,7 +29,8 @@ const GeneralSettings = () => {
 
     const fetchSettings = async () => {
         try {
-            const res = await axios.get(`http://localhost:3001/api/guild/${guildId}/settings`, { withCredentials: true });
+            const API_URL = import.meta.env.VITE_API_URL || "https://YOUR_RENDER_BACKEND_URL";
+            const res = await axios.get(`${API_URL}/api/guild/${guildId}/settings`, { withCredentials: true });
             setSettings(res.data);
             setLoading(false);
         } catch (error) {
@@ -40,7 +41,8 @@ const GeneralSettings = () => {
     const saveSettings = async () => {
         setSaving(true);
         try {
-            await axios.post(`http://localhost:3001/api/guild/${guildId}/settings`, settings, { withCredentials: true });
+            const API_URL = import.meta.env.VITE_API_URL || "https://YOUR_RENDER_BACKEND_URL";
+            await axios.post(`${API_URL}/api/guild/${guildId}/settings`, settings, { withCredentials: true });
             setMessage("Settings saved successfully! ✨");
             setTimeout(() => setMessage(""), 3000);
             window.location.reload(); // Refresh to apply broad UI changes like theme
@@ -53,8 +55,10 @@ const GeneralSettings = () => {
 
     const runCommand = async (command: string, data: any) => {
         try {
-            await axios.post(`http://localhost:3001/api/guild/${guildId}/command`, { command, data }, { withCredentials: true });
+            const API_URL = import.meta.env.VITE_API_URL || "https://YOUR_RENDER_BACKEND_URL";
+            await axios.post(`${API_URL}/api/guild/${guildId}/command`, { command, data }, { withCredentials: true });
             setMessage(`🚀 ${command.replace("_", " ")} executed!`);
+
             setTimeout(() => setMessage(""), 3000);
         } catch (error) {
             setMessage("❌ Command failed. Check bot permissions.");

@@ -13,7 +13,7 @@ const Landing = () => {
     const [statsData, setStatsData] = useState({ totalServers: 0, totalUsers: 0, commandsProcessed: 0 });
 
     useEffect(() => {
-        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+        const API_URL = import.meta.env.VITE_API_URL || "https://YOUR_RENDER_BACKEND_URL";
         axios.get(`${API_URL}/api/stats`).then(res => setStatsData(res.data)).catch(() => {});
     }, []);
 
@@ -91,7 +91,7 @@ const Landing = () => {
                         transition={{ delay: 0.2 }}
                         className="flex flex-col sm:flex-row gap-6 pt-4"
                     >
-                        <a href="http://localhost:3001/auth/discord" className="premium-btn group">
+                        <a href="https://YOUR_RENDER_BACKEND_URL/auth/discord" className="premium-btn group">
                             ADD TO DISCORD <ArrowRight className="group-hover:translate-x-1 transition-transform" />
                         </a>
                         <Link to="/app" className="premium-btn-outline">

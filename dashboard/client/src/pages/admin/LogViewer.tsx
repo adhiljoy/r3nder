@@ -22,7 +22,7 @@ const LogViewer = () => {
 
     const fetchLogs = () => {
         setLoading(true);
-        axios.get("http://localhost:3001/api/admin/logs", {
+        axios.get("https://YOUR_RENDER_BACKEND_URL/api/admin/logs", {
             params: { page, search, type, guildId },
             withCredentials: true
         })

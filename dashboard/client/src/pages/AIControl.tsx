@@ -9,18 +9,20 @@ const AIControl = () => {
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+        const API_URL = import.meta.env.VITE_API_URL || "https://YOUR_RENDER_BACKEND_URL";
         axios.get(`${API_URL}/api/guild/${guildId}/settings`, { withCredentials: true })
             .then(res => setSettings(res.data))
             .catch(console.error);
     }, [guildId]);
 
+
     const handleSave = async () => {
         setSaving(true);
         try {
-            const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+            const API_URL = import.meta.env.VITE_API_URL || "https://YOUR_RENDER_BACKEND_URL";
             await axios.post(`${API_URL}/api/guild/${guildId}/settings`, settings, { withCredentials: true });
         } catch (error) {
+
 
             alert("Error saving AI settings.");
         } finally {

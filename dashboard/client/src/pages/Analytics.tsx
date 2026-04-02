@@ -13,7 +13,7 @@ const Analytics = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+        const API_URL = import.meta.env.VITE_API_URL || "https://YOUR_RENDER_BACKEND_URL";
         axios.get(`${API_URL}/api/guild/${guildId}/analytics`, { withCredentials: true })
             .then(res => {
                 const formatted = res.data.map((d: any) => ({
