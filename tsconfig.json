@@ -4,16 +4,17 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": "./src",
     "baseUrl": "./",
     "paths": {
       "@client/*": ["src/client/*"],
       "@services/*": ["src/services/*"],
-      "@database/*": ["dashboard/shared/models/*"],
+      "@database/*": ["src/database/shared/*"],
       "@config/*": ["src/config/*"],
       "@utils/*": ["src/utils/*"],
       "@events/*": ["src/events/*"],
-      "@appTypes/*": ["src/types/*"]
+      "@appTypes/*": ["src/types/*"],
+      "@routes/*": ["src/routes/*"]
     },
     "strict": true,
     "noImplicitAny": true,
@@ -26,6 +27,6 @@
     "experimentalDecorators": true,
     "lib": ["ESNext"]
   },
-  "include": ["src/**/*", "dashboard/shared/**/*"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

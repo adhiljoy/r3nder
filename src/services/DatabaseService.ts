@@ -1,5 +1,6 @@
 import { config } from "@config/index";
-import { DatabaseUtils } from "../../dashboard/shared/utils/database";
+import { DatabaseUtils } from "@database/utils/database";
+
 
 export class DatabaseService {
     private dbConfig = {
