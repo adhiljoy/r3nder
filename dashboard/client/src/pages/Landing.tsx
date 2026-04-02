@@ -91,9 +91,10 @@ const Landing = () => {
                         transition={{ delay: 0.2 }}
                         className="flex flex-col sm:flex-row gap-6 pt-4"
                     >
-                        <a href="https://r3nder-api.onrender.com/auth/discord" className="premium-btn group">
+                        <a href={`${import.meta.env.VITE_API_URL || "https://r3nder-api.onrender.com"}/auth/discord`} className="premium-btn group">
                             ADD TO DISCORD <ArrowRight className="group-hover:translate-x-1 transition-transform" />
                         </a>
+
                         <Link to="/app" className="premium-btn-outline">
                             OPEN DASHBOARD
                         </Link>
