@@ -12,6 +12,7 @@ import { R3NDERClient } from "@client/R3nderClient";
 import { Guild } from "@database/Guild";
 import { User } from "@database/User";
 import { LogType, LogPriority } from "@database/Log";
+import authRoutes from "./routes/auth.routes";
 
 export const startDashboard = (client: R3NDERClient) => {
     dotenv.config({ path: path.join(__dirname, "../.env") });
@@ -67,15 +68,7 @@ const isAuth = (req: any, res: any, next: any) => {
 };
 
 // ─── AUTH ROUTES ───────────────────────────────────────────────────
-app.get("/auth/discord", passport.authenticate("discord"));
-app.get("/auth/callback", passport.authenticate("discord", {
-
-    failureRedirect: FRONTEND_URL
-}), (req: any, res) => {
-    const adminIds = (process.env.ADMIN_IDS || "").split(",");
-    const isAdmin = adminIds.includes(req.user.id);
-    res.redirect(isAdmin ? `${FRONTEND_URL}/core/overview` : `${FRONTEND_URL}/portal`);
-});
+app.use("/", authRoutes);
 
 app.get("/api/user", isAuth, (req: any, res) => {
     const adminIds = (process.env.ADMIN_IDS || "").split(",");
