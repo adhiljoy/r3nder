@@ -1,8 +1,8 @@
 import { Events, Message, TextChannel, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageActionRowComponentBuilder } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
-import { User } from "@database/User";
-import { LogType, LogPriority } from "@database/Log";
-import { Guild } from "@database/Guild";
+import { R3NDERClient } from "../client/R3nderClient";
+import { User } from "../database/shared/User";
+import { LogType, LogPriority } from "../database/shared/Log";
+import { Guild } from "../database/shared/Guild";
 
 export default {
     name: Events.MessageCreate,

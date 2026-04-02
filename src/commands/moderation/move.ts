@@ -6,9 +6,9 @@ import {
     GuildMember,
     ChannelType
 } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
-import { Command } from "@appTypes/index";
-import { LogPriority, LogType } from "@database/Log";
+import { R3NDERClient } from "../../client/R3nderClient";
+import { Command } from "../../types/index";
+import { LogPriority, LogType } from "../../database/shared/Log";
 
 const move: Command = {
     data: new SlashCommandBuilder()

@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
-import { Command } from "@appTypes/index";
+import { R3NDERClient } from "../../client/R3nderClient";
+import { Command } from "../../types/index";
 
 const daily: Command = {
     data: new SlashCommandBuilder()

@@ -3,13 +3,13 @@ import {
     Message,
     EmbedBuilder,
 } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
+import { R3NDERClient } from "../client/R3nderClient";
 import {
     buildPlayerEmbed,
     buildControlRow,
     buildStoppedEmbed,
     SimpleQueue,
-} from "@utils/MusicUI";
+} from "../utils/MusicUI";
 
 // ─── Per-guild panel state ────────────────────────────────────────────────────
 interface PanelState {

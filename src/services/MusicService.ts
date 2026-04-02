@@ -5,8 +5,8 @@ import ytdl from "@distube/ytdl-core";
 import ffmpeg from "ffmpeg-static";
 import { R3NDERClient } from "../client/R3nderClient";
 import { VoiceManager, GuildVoiceState, Track } from "./VoiceManager";
-import { LogType, LogPriority } from "@database/Log";
-import { MusicEventType } from "@database/MusicLog";
+import { LogType, LogPriority } from "../database/shared/Log";
+import { MusicEventType } from "../database/shared/MusicLog";
 
 import path from "path";
 import { execSync, spawn } from "child_process";

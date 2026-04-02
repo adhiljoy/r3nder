@@ -1,7 +1,7 @@
 import axios from "axios";
 import FormData from "form-data";
 import crypto from "crypto";
-import { config } from "@config/index";
+import { config } from "../config/index";
 
 export interface RecognitionResult {
     title: string;

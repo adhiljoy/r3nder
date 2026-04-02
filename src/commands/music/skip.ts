@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
-import { Command } from "@appTypes/index";
+import { R3NDERClient } from "../../client/R3nderClient";
+import { Command } from "../../types/index";
 
 const skip: Command = {
     data: new SlashCommandBuilder().setName("skip").setDescription("Skip the current song"),

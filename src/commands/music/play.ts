@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, GuildMember } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
-import { Command } from "@appTypes/index";
-import { LogType, LogPriority } from "@database/Log";
+import { R3NDERClient } from "../../client/R3nderClient";
+import { Command } from "../../types/index";
+import { LogType, LogPriority } from "../../database/shared/Log";
 
 const play: Command = {
     data: new SlashCommandBuilder()

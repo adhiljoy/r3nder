@@ -1,4 +1,4 @@
-import { Economy, IEconomy } from "@database/Economy";
+import { Economy, IEconomy } from "../database/shared/Economy";
 
 const DAILY_BASE_COINS = 100;
 const DAILY_STREAK_BONUS = 25; // per streak day

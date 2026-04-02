@@ -1,4 +1,4 @@
-import { Analytics } from "@database/Analytics";
+import { Analytics } from "../database/shared/Analytics";
 import { Collection } from "discord.js";
 
 interface GuildCache {

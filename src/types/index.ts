@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
+import { R3NDERClient } from "../client/R3nderClient";
 
 export interface Command {
     data: any;

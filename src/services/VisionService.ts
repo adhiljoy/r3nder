@@ -1,5 +1,5 @@
 import { OpenAI } from "openai";
-import { config } from "@config/index";
+import { config } from "../config/index";
 
 export class VisionService {
     private openai: OpenAI;

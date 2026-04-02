@@ -1,9 +1,9 @@
 import OpenAI from "openai";
-import { config } from "@config/index";
-import { AIContext } from "@database/AIContext";
-import { User } from "@database/User";
-import { Guild } from "@database/Guild";
-import { LogPriority, LogType } from "@database/Log";
+import { config } from "../config/index";
+import { AIContext } from "../database/shared/AIContext";
+import { User } from "../database/shared/User";
+import { Guild } from "../database/shared/Guild";
+import { LogPriority, LogType } from "../database/shared/Log";
 
 export interface ChatMessage {
     role: "user" | "assistant" | "system";

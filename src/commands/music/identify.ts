@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
+import { R3NDERClient } from "../../client/R3nderClient";
 import axios from "axios";
-import { LogType, LogPriority } from "@database/Log";
+import { LogType, LogPriority } from "../../database/shared/Log";
 
 export default {
     data: new SlashCommandBuilder()

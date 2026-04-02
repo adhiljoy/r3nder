@@ -1,7 +1,7 @@
 import { Events, Guild as DiscordGuild } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
-import { Guild } from "@database/Guild";
-import { Log, LogType, LogPriority } from "@database/Log";
+import { R3NDERClient } from "../client/R3nderClient";
+import { Guild } from "../database/shared/Guild";
+import { Log, LogType, LogPriority } from "../database/shared/Log";
 
 export default {
     name: Events.GuildDelete,

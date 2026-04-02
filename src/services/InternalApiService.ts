@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { R3NDERClient } from "@client/R3nderClient";
+import { R3NDERClient } from "../client/R3nderClient";
 import { VoiceBasedChannel } from "discord.js";
 
 export class InternalApiService {

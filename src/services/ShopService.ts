@@ -1,7 +1,7 @@
 import { Guild } from "discord.js";
-import { ShopItem, IShopItem } from "@database/ShopItem";
-import { Inventory, IInventoryItem } from "@database/Inventory";
-import { EconomyService } from "@services/EconomyService";
+import { ShopItem, IShopItem } from "../database/shared/ShopItem";
+import { Inventory, IInventoryItem } from "../database/shared/Inventory";
+import { EconomyService } from "./EconomyService";
 
 export interface PurchaseResult {
     item: IShopItem;

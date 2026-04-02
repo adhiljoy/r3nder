@@ -7,11 +7,11 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import path from "path";
-import { R3NDERClient } from "@client/R3nderClient";
-import { Guild } from "@database/Guild";
-import { User } from "@database/User";
-import { LogType, LogPriority } from "@database/Log";
-import { MusicLog, MusicEventType } from "@database/MusicLog";
+import { R3NDERClient } from "./client/R3nderClient";
+import { Guild } from "./database/shared/Guild";
+import { User } from "./database/shared/User";
+import { LogType, LogPriority } from "./database/shared/Log";
+import { MusicLog, MusicEventType } from "./database/shared/MusicLog";
 import authRoutes from "./routes/auth.routes";
 
 export const startDashboard = (client: R3NDERClient) => {

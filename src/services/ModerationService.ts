@@ -1,6 +1,6 @@
 import { Client, TextChannel, Message, EmbedBuilder, GuildMember } from "discord.js";
 import { AIService } from "./AIService";
-import { Guild } from "@database/Guild";
+import { Guild } from "../database/shared/Guild";
 
 export class ModerationService {
     private ai: AIService;

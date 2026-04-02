@@ -1,7 +1,7 @@
-import { Log, LogType, LogPriority } from "@database/Log";
-import { User } from "@database/User";
-import { Guild } from "@database/Guild";
-import { R3NDERClient } from "@client/R3nderClient";
+import { Log, LogType, LogPriority } from "../database/shared/Log";
+import { User } from "../database/shared/User";
+import { Guild } from "../database/shared/Guild";
+import { R3NDERClient } from "../client/R3nderClient";
 
 export interface RiskAnalysis {
     score: number;

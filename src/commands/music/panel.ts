@@ -3,9 +3,9 @@ import {
     ChatInputCommandInteraction,
     GuildMember,
 } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
-import { Command } from "@appTypes/index";
-import { buildPlayerEmbed, buildControlRow, buildStoppedEmbed } from "@utils/MusicUI";
+import { R3NDERClient } from "../../client/R3nderClient";
+import { Command } from "../../types/index";
+import { buildPlayerEmbed, buildControlRow, buildStoppedEmbed } from "../../utils/MusicUI";
 
 const panel: Command = {
     data: new SlashCommandBuilder()

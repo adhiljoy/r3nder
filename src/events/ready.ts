@@ -1,7 +1,7 @@
 import { Events, TextChannel } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
-import { User } from "@database/User";
-import { Guild } from "@database/Guild";
+import { R3NDERClient } from "../client/R3nderClient";
+import { User } from "../database/shared/User";
+import { Guild } from "../database/shared/Guild";
 
 
 export default {

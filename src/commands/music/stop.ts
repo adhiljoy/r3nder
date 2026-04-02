@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
-import { Command } from "@appTypes/index";
+import { R3NDERClient } from "../../client/R3nderClient";
+import { Command } from "../../types/index";
 
 const stop: Command = {
     data: new SlashCommandBuilder().setName("stop").setDescription("Stop music and clear the queue"),

@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
-import { Command } from "@appTypes/index";
-import { User } from "@database/User";
+import { R3NDERClient } from "../../client/R3nderClient";
+import { Command } from "../../types/index";
+import { User } from "../../database/shared/User";
 
 const leaderboard: Command = {
     data: new SlashCommandBuilder().setName("leaderboard").setDescription("Show the XP leaderboard"),

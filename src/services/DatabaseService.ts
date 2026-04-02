@@ -1,5 +1,5 @@
-import { config } from "@config/index";
-import { DatabaseUtils } from "@database/utils/database";
+import { config } from "../config/index";
+import { DatabaseUtils } from "../database/shared/utils/database";
 
 
 export class DatabaseService {

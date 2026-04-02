@@ -1,6 +1,6 @@
 import { Events, GuildMember } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
-import { LogType, LogPriority } from "@database/Log";
+import { R3NDERClient } from "../client/R3nderClient";
+import { LogType, LogPriority } from "../database/shared/Log";
 
 export default {
     name: Events.GuildMemberAdd,

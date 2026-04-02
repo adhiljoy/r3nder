@@ -5,10 +5,10 @@ import {
     ChannelType,
     EmbedBuilder 
 } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
+import { R3NDERClient } from "../../client/R3nderClient";
 import { Command } from "../../types";
-import { Guild } from "@database/Guild";
-import { LogPriority, LogType } from "@database/Log";
+import { Guild } from "../../database/shared/Guild";
+import { LogPriority, LogType } from "../../database/shared/Log";
 
 const setLogChannel: Command = {
     data: new SlashCommandBuilder()

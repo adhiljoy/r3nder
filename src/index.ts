@@ -3,7 +3,7 @@ dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 import express from "express";
 import { GatewayIntentBits, Partials } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
+import { R3NDERClient } from "./client/R3nderClient";
 import { startDashboard } from "./DashboardServer";
 
 const app = express();

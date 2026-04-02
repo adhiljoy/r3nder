@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
-import { User } from "@database/User";
+import { R3NDERClient } from "../../client/R3nderClient";
+import { User } from "../../database/shared/User";
 
 export default {
     data: new SlashCommandBuilder()

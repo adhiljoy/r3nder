@@ -1,26 +1,26 @@
 import { Client, ClientOptions, Collection, REST, Routes } from "discord.js";
 import * as fs from "fs";
 import * as path from "path";
-import { Command } from "@appTypes/index";
-import { config } from "@config/index";
-import { AIService } from "@services/AIService";
-import { MusicService } from "@services/MusicService";
-import { DatabaseService } from "@services/DatabaseService";
-import { CacheService } from "@services/CacheService";
-import { RateLimitService } from "@services/RateLimitService";
-import { VisionService } from "@services/VisionService";
-import { EconomyService } from "@services/EconomyService";
-import { ShopService } from "@services/ShopService";
-import { ModerationService } from "@services/ModerationService";
-import { AutopilotService } from "@services/AutopilotService";
-import { MusicRecognitionService } from "@services/MusicRecognitionService";
-import { AnalyticsService } from "@services/AnalyticsService";
-import { InternalApiService } from "@services/InternalApiService";
-import { VoiceManager } from "@services/VoiceManager";
-import { MusicPanelService } from "@services/MusicPanelService";
+import { Command } from "../types/index";
+import { config } from "../config/index";
+import { AIService } from "../services/AIService";
+import { MusicService } from "../services/MusicService";
+import { DatabaseService } from "../services/DatabaseService";
+import { CacheService } from "../services/CacheService";
+import { RateLimitService } from "../services/RateLimitService";
+import { VisionService } from "../services/VisionService";
+import { EconomyService } from "../services/EconomyService";
+import { ShopService } from "../services/ShopService";
+import { ModerationService } from "../services/ModerationService";
+import { AutopilotService } from "../services/AutopilotService";
+import { MusicRecognitionService } from "../services/MusicRecognitionService";
+import { AnalyticsService } from "../services/AnalyticsService";
+import { InternalApiService } from "../services/InternalApiService";
+import { VoiceManager } from "../services/VoiceManager";
+import { MusicPanelService } from "../services/MusicPanelService";
 
-import { LogService } from "@services/LogService";
-import { RiskService } from "@services/RiskService";
+import { LogService } from "../services/LogService";
+import { RiskService } from "../services/RiskService";
 
 export class R3NDERClient extends Client {
     public commands: Collection<string, Command> = new Collection();

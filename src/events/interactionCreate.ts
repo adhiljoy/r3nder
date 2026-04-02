@@ -6,12 +6,12 @@ import {
     GuildMember,
     TextChannel,
 } from "discord.js";
-import { R3NDERClient } from "@client/R3nderClient";
-import { MUSIC_BTN, buildPlayerEmbed, buildControlRow, buildStoppedEmbed, buildPlaylistEmbed } from "@utils/MusicUI";
-import { LogType, LogPriority } from "@database/Log";
-import { User } from "@database/User";
-import { Guild } from "@database/Guild";
-import { AnalyticsService } from "@services/AnalyticsService";
+import { R3NDERClient } from "../client/R3nderClient";
+import { MUSIC_BTN, buildPlayerEmbed, buildControlRow, buildStoppedEmbed, buildPlaylistEmbed } from "../utils/MusicUI";
+import { LogType, LogPriority } from "../database/shared/Log";
+import { User } from "../database/shared/User";
+import { Guild } from "../database/shared/Guild";
+import { AnalyticsService } from "../services/AnalyticsService";
 
 // ─────────────────────────────────────────
 // Button handler helper

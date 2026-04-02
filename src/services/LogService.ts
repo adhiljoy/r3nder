@@ -1,8 +1,8 @@
 import { Client, TextChannel, EmbedBuilder, ColorResolvable } from "discord.js";
 import axios from "axios";
-import { Log, LogPriority, LogType } from "@database/Log";
-import { MusicLog, MusicEventType, IMusicLog } from "@database/MusicLog";
-import { Guild } from "@database/Guild";
+import { Log, LogPriority, LogType } from "../database/shared/Log";
+import { MusicLog, MusicEventType, IMusicLog } from "../database/shared/MusicLog";
+import { Guild } from "../database/shared/Guild";
 
 export class LogService {
     private client: Client;

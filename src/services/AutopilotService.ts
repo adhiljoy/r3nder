@@ -1,10 +1,10 @@
 import { Client, TextChannel, EmbedBuilder, Message } from "discord.js";
 import { AIService } from "./AIService";
-import { Guild } from "@database/Guild";
-import { User } from "@database/User";
-import { LogPriority, LogType } from "@database/Log";
+import { Guild } from "../database/shared/Guild";
+import { User } from "../database/shared/User";
+import { LogPriority, LogType } from "../database/shared/Log";
 import { RateLimitService } from "./RateLimitService";
-import { R3NDERClient } from "@client/R3nderClient";
+import { R3NDERClient } from "../client/R3nderClient";
 
 export class AutopilotService {
     private client: Client;
