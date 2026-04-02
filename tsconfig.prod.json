@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@client/*": ["dist/src/client/*"],
+      "@services/*": ["dist/src/services/*"],
+      "@database/*": ["dist/dashboard/shared/models/*"],
+      "@config/*": ["dist/src/config/*"],
+      "@utils/*": ["dist/src/utils/*"],
+      "@events/*": ["dist/src/events/*"],
+      "@appTypes/*": ["dist/src/types/*"],
+      "@routes/*": ["dist/src/routes/*"]
+    }
+  }
+}

@@ -1,3 +1,7 @@
+import * as dns from "node:dns";
+
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
 import { GatewayIntentBits, Partials } from "discord.js";
 import { R3NDERClient } from "@client/R3nderClient";
 

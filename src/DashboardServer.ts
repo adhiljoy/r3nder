@@ -5,13 +5,13 @@ import { Strategy as DiscordStrategy } from "passport-discord";
 import MongoStore from "connect-mongo";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-
 import dotenv from "dotenv";
 import path from "path";
 import { R3NDERClient } from "@client/R3nderClient";
 import { Guild } from "@database/Guild";
 import { User } from "@database/User";
 import { LogType, LogPriority } from "@database/Log";
+import { MusicLog, MusicEventType } from "@database/MusicLog";
 import authRoutes from "./routes/auth.routes";
 
 export const startDashboard = (client: R3NDERClient) => {
@@ -47,9 +47,7 @@ app.use(session({
     cookie: { maxAge: 60000 * 60 * 24 * 7 }
 }));
 
-import authRoutes from "./routes/auth.routes";
 
-// ... (existing imports)
 
 const isAuth = (req: any, res: any, next: any) => {
     if ((req.session as any).user) return next();
@@ -239,9 +237,10 @@ app.get("/api/admin/logs", isAuth, async (req, res) => {
 // MONOLITHIC FINALITY: Serving Dashboard Assets Directly
 app.use(express.static(path.join(__dirname, "../dashboard/client/dist")));
 
-app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "../dashboard/client/dist/index.html"));
+app.get("(.*)", (req, res) => {
+    res.sendFile(path.join(__dirname, "../dashboard/client/dist/index.html"));
 });
+
 
     app.listen(port, () => {
 

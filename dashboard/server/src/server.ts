@@ -3,6 +3,8 @@ import session from "express-session";
 import MongoStore from "connect-mongo";
 import mongoose from "mongoose";
 
+import * as dns from "node:dns";
+
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
@@ -15,6 +17,11 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import axios from "axios";
 import adminRouter from "./routes/Admin";
+import authRoutes from "@routes/auth.routes";
+
+import { User } from "@database/User";
+import { MusicLog, MusicEventType } from "@database/MusicLog";
+
 
 const app = express();
 
@@ -88,8 +95,8 @@ app.use(session({
     }
 }));
 
-import authRoutes from "../../src/routes/auth.routes";
-import { User } from "@database/User";
+
+
 
 const isAuth = (req: any, res: any, next: any) => {
     if ((req.session as any).user) return next();

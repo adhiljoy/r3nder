@@ -11,8 +11,10 @@
       "@database/*": ["dashboard/shared/models/*"],
       "@utils/*": ["dashboard/shared/utils/*"],
       "@config/*": ["src/config/*"],
-      "@services/*": ["src/services/*"]
+      "@services/*": ["src/services/*"],
+      "@routes/*": ["src/routes/*"]
     },
+
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
