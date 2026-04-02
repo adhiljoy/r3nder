@@ -44,9 +44,24 @@ export class VoiceManager {
             channelId: channel.id,
             guildId: guildId,
             adapterCreator: channel.guild.voiceAdapterCreator,
+            selfDeaf: false,
+            selfMute: false
         });
 
         const player = createAudioPlayer();
+        
+        // --- CONNECTION TELEMETRY ---
+        connection.on(VoiceConnectionStatus.Ready, () => {
+            console.log(`[R3NDER Voice] Connection READY in Guild: ${guildId}`);
+        });
+
+        connection.on(VoiceConnectionStatus.Signalling, () => {
+            console.log(`[R3NDER Voice] Connection SIGNALLING in Guild: ${guildId}`);
+        });
+
+        connection.on("error", (error) => {
+            console.error(`[R3NDER Voice] Connection ERROR in Guild: ${guildId}:`, error.message);
+        });
         
         // --- RESILIENCY HANDLERS ---
         player.on(AudioPlayerStatus.Idle, () => {

@@ -172,15 +172,44 @@ export class MusicService {
 
         try {
             const { stream, type } = await this.createStream(track.url);
+            
+            // Validate stream before resource creation
+            if (!stream) throw new Error("Audio stream is undefined.");
+            
             const resource = createAudioResource(stream, {
                 inputType: type,
                 inlineVolume: true
             });
             
+            // Force set volume to ensure audible playback
+            if (resource.volume) {
+                resource.volume.setVolume(1);
+            }
+
+            // Status Telemetry
+            state.player.once(AudioPlayerStatus.Playing, () => {
+                console.log(`[R3NDER Kernel] AUDIO_START: ${track.name} on Guild: ${guildId}`);
+                this.client.logs.log({
+                    type: LogType.MUSIC,
+                    priority: LogPriority.INFO,
+                    action: "AUDIO_START",
+                    content: `Playback started: ${track.name}`,
+                    metadata: { guildId, track: track.url }
+                }).catch(() => {});
+            });
+
             this.voiceManager.play(guildId, resource, track);
         } catch (error: any) {
-            // Auto skip on fatal stream error
-            console.error(`[MusicService] Failed to play ${track.name}:`, error.message);
+            // AUDIO_FAIL Log
+            await this.client.logs.log({
+                type: LogType.MUSIC,
+                priority: LogPriority.ERROR,
+                action: "AUDIO_FAIL",
+                content: `Playback failed: ${track.name}`,
+                metadata: { error: error.message }
+            }).catch(() => {});
+
+            console.error(`[MusicService] AUDIO_FAIL for ${track.name}:`, error.message);
             await this.playNext(guildId, true);
         }
     }
