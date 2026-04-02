@@ -23,6 +23,7 @@ const ServerAnalytics = lazy(() => import("./pages/ServerAnalytics"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
 const LogViewer = lazy(() => import("./pages/admin/LogViewer"));
+const Landing = lazy(() => import("./pages/Landing"));
 
 const PageLoader = () => (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -41,7 +42,8 @@ function App() {
         <AuthProvider>
             <BrowserRouter>
                 <Routes>
-                    <Route path="/" element={<Login />} />
+                    <Route path="/" element={<Suspense fallback={<PageLoader />}><Landing /></Suspense>} />
+                    <Route path="/login" element={<Login />} />
                     <Route path="/guilds" element={<ProtectedRoute><GuildSelector /></ProtectedRoute>} />
                     <Route 
                         path="/dashboard/:guildId/*" 
