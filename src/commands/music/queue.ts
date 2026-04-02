@@ -33,7 +33,7 @@ const queue: Command = {
         const currentPage = Math.min(page, totalPages - 1);
         const pageSongs = songs.slice(currentPage * SONGS_PER_PAGE, (currentPage + 1) * SONGS_PER_PAGE);
 
-        const songList = pageSongs.map((s, i) => {
+        const songList = pageSongs.map((s: any, i: any) => {
             const globalIndex = currentPage * SONGS_PER_PAGE + i;
             const prefix = globalIndex === 0 ? "▶️ **Now Playing**" : `**${globalIndex}.**`;
             return `${prefix} [${s.name}](${s.url}) — \`${s.formattedDuration}\`\n> Requested by ${s.user ?? "Unknown"}`;

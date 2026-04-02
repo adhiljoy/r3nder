@@ -34,10 +34,12 @@ export class InternalApiService {
                     progress: queue.currentTime,
                     totalSeconds: queue.songs[0].duration
                 },
-                queue: queue.songs.slice(1, 6).map(s => ({
+                queue: queue.songs.slice(1, 6).map((s: any) => ({
                     title: s.name,
-                    duration: s.formattedDuration
-                }))
+                    duration: s.formattedDuration,
+                    requestedBy: s.requestedBy
+                })),
+                metrics: this.client.music.getMetrics()
             });
         });
 
@@ -78,6 +80,21 @@ export class InternalApiService {
                 res.json({ success: true });
             } catch (error: any) {
                 res.status(500).json({ success: false, error: error.message });
+            }
+        });
+
+        this.app.get("/music/metrics", (req: Request, res: Response) => {
+            res.json(this.client.music.getMetrics());
+        });
+
+        this.app.post("/guild/:guildId/leave", async (req: Request, res: Response) => {
+            const { guildId } = req.params;
+            const guild = this.client.guilds.cache.get(guildId);
+            if (guild) {
+                await guild.leave();
+                res.json({ success: true });
+            } else {
+                res.status(404).json({ success: false, error: "Guild not found in cache" });
             }
         });
 

@@ -1,6 +1,7 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, GuildMember } from "discord.js";
 import { R3NDERClient } from "@client/R3nderClient";
 import { Command } from "@appTypes/index";
+import { LogType, LogPriority } from "@database/Log";
 
 const join: Command = {
     data: new SlashCommandBuilder()
@@ -21,11 +22,26 @@ const join: Command = {
 
             const embed = new EmbedBuilder()
                 .setTitle("📥 Joined Voice Channel")
-                .setDescription(`Successfully joined **${channel.name}**`)
-                .setColor("#3B82F6")
+                .setDescription(`Successfully linked to **${channel.name}**`)
+                .setColor("#8B5CF6")
                 .setTimestamp();
 
             await interaction.reply({ embeds: [embed] });
+
+            // Log event
+            await client.logs.log({
+                type: LogType.COMMAND,
+                priority: LogPriority.INFO,
+                guildId: interaction.guildId!,
+                userId: interaction.user.id,
+                action: "VC_JOIN",
+                content: `Joined voice channel: ${channel.name}`,
+                metadata: {
+                    channelId: channel.id,
+                    channelName: channel.name
+                }
+            });
+
         } catch (error) {
             console.error(error);
             await interaction.reply({ content: "❌ I failed to join the voice channel.", ephemeral: true });

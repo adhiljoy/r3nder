@@ -1,6 +1,7 @@
-import { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder, ChatInputCommandInteraction } from "discord.js";
+import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction } from "discord.js";
 import { R3NDERClient } from "@client/R3nderClient";
 import axios from "axios";
+import { LogType, LogPriority } from "@database/Log";
 
 export default {
     data: new SlashCommandBuilder()
@@ -8,25 +9,23 @@ export default {
         .setDescription("Identify music from an uploaded audio file.")
         .addAttachmentOption(option =>
             option.setName("audio")
-                .setDescription("The audio file to identify (mp3, wav, m4a, ogg)")
+                .setDescription("The audio file to identify (mp3, wav, ogg)")
                 .setRequired(true)
         ),
 
     async execute(client: R3NDERClient, interaction: ChatInputCommandInteraction): Promise<void> {
         const attachment = interaction.options.getAttachment("audio", true);
-        const allowedExtensions = ["mp3", "wav", "m4a", "ogg", "aac", "flac"];
+        const allowedExtensions = ["mp3", "wav", "ogg", "m4a"];
         const extension = attachment.name?.split(".").pop()?.toLowerCase();
 
-        // 1. Validate File Type
         if (!extension || !allowedExtensions.includes(extension)) {
             await interaction.reply({
-                content: "❌ Invalid file type. Please upload a supported audio format (mp3, wav, m4a, ogg).",
+                content: "❌ Invalid file type. Please upload a supported audio format (mp3, wav, ogg).",
                 ephemeral: true
             });
             return;
         }
 
-        // 2. Validate File Size (Max 10MB)
         if (attachment.size > 10 * 1024 * 1024) {
             await interaction.reply({
                 content: "❌ File too large. Maximum size is 10MB.",
@@ -35,64 +34,49 @@ export default {
             return;
         }
 
-        // 3. Rate Limiting (1/min per user)
-        const rateLimitKey = `music_identify:${interaction.user.id}`;
-        if (!client.ratelimit.check(rateLimitKey, 1, 60000)) {
-            await interaction.reply({
-                content: "⏳ Please wait a minute before identifying another song.",
-                ephemeral: true
-            });
-            return;
-        }
-
         await interaction.deferReply();
 
         try {
-            // 4. Download Audio
             const response = await axios.get(attachment.url, { responseType: "arraybuffer" });
             const buffer = Buffer.from(response.data as any);
 
-            // 5. Identify via ACRCloud
             const result = await client.musicRecognition.identify(buffer);
 
-            if (result.status.code !== 0 || !result.metadata?.music || result.metadata.music.length === 0) {
-                const errorMsg = result.status.code === 1001 ? "No match found for this audio." : `ACRCloud Error: ${result.status.msg}`;
-                await interaction.editReply({ content: `🔍 **Identification Result:** ${errorMsg}` });
+            if (!result) {
+                await interaction.editReply({ content: "🔍 Could not पहचान the song. (No match found or API error)" });
                 return;
             }
 
-            // 6. Parse Top Match
-            const topMatch = result.metadata.music[0];
-            const artistNames = topMatch.artists.map(a => a.name).join(", ");
-            const confidence = topMatch.score;
-            const isUncertain = confidence < 60;
-
             const embed = new EmbedBuilder()
                 .setTitle("🎵 Song Identified")
-                .setDescription(isUncertain ? "⚠️ *I found a potential match, but I'm not 100% sure.*" : "✅ *I've successfully identified this song!*")
                 .addFields(
-                    { name: "Title", value: topMatch.title, inline: true },
-                    { name: "Artist", value: artistNames, inline: true },
-                    { name: "Album", value: topMatch.album?.name || "Unknown", inline: true },
-                    { name: "Confidence", value: `${confidence}%`, inline: true }
+                    { name: "🎵 Song", value: result.title, inline: true },
+                    { name: "🎤 Artist", value: result.artist, inline: true },
+                    { name: "💿 Album", value: result.album, inline: true }
                 )
-                .setColor(isUncertain ? "#FFA500" : "#5865F2")
+                .setColor("#8B5CF6")
                 .setTimestamp()
-                .setFooter({ text: "Powered by ACRCloud", iconURL: client.user?.displayAvatarURL() });
-
-            // Handle alternative matches
-            if (result.metadata.music.length > 1) {
-                const alts = result.metadata.music.slice(1, 4)
-                    .map((m, i) => `${i + 1}. **${m.title}** by ${m.artists.map(a => a.name).join(", ")} (${m.score}%)`)
-                    .join("\n");
-                embed.addFields({ name: "Alternatives", value: alts });
-            }
+                .setFooter({ text: "Powered by R3NDER Audio Engine", iconURL: client.user?.displayAvatarURL() });
 
             await interaction.editReply({ embeds: [embed] });
 
+            // Log event
+            await client.logs.log({
+                type: LogType.COMMAND,
+                priority: LogPriority.INFO,
+                guildId: interaction.guildId!,
+                userId: interaction.user.id,
+                action: "SONG_IDENTIFIED",
+                content: `Identified track: ${result.title} by ${result.artist}`,
+                metadata: {
+                    title: result.title,
+                    artist: result.artist
+                }
+            });
+
         } catch (error) {
             console.error("[Identify Command Error]", error);
-            await interaction.editReply({ content: "❌ An error occurred while trying to identify the music. Please try again later." });
+            await interaction.editReply({ content: "❌ An error occurred during identification." });
         }
     }
 };

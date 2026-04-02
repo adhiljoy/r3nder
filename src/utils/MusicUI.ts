@@ -5,7 +5,22 @@ import {
     ActionRowBuilder,
     MessageActionRowComponentBuilder,
 } from "discord.js";
-import { Queue, RepeatMode } from "distube";
+interface SimpleSong {
+    name: string;
+    url: string;
+    thumbnail?: string;
+    formattedDuration: string;
+    user?: string;
+    duration?: number;
+}
+
+interface SimpleQueue {
+    paused: boolean;
+    repeatMode?: number;
+    volume: number;
+    songs: SimpleSong[];
+    currentTime: number;
+}
 
 export const MUSIC_BTN = {
     PAUSE:   "music_pause",
@@ -25,10 +40,10 @@ function buildProgressBar(current: number, total: number, length = 20): string {
 }
 
 /** Build the "Now Playing" embed from the queue state */
-export function buildPlayerEmbed(queue: Queue, guildName: string): EmbedBuilder {
+export function buildPlayerEmbed(queue: SimpleQueue, guildName: string): EmbedBuilder {
     const song = queue.songs[0];
     const isPaused = queue.paused;
-    const isLooping = queue.repeatMode === RepeatMode.SONG;
+    const isLooping = queue.repeatMode === 1;
     const volume = queue.volume;
     const queueLength = queue.songs.length;
 

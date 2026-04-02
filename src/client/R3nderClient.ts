@@ -16,6 +16,7 @@ import { AutopilotService } from "@services/AutopilotService";
 import { MusicRecognitionService } from "@services/MusicRecognitionService";
 import { AnalyticsService } from "@services/AnalyticsService";
 import { InternalApiService } from "@services/InternalApiService";
+import { VoiceManager } from "@services/VoiceManager";
 
 import { LogService } from "@services/LogService";
 import { RiskService } from "@services/RiskService";
@@ -24,6 +25,7 @@ export class R3NDERClient extends Client {
     public commands: Collection<string, Command> = new Collection();
     public ai: AIService;
     public music: MusicService;
+    public voiceManager: VoiceManager;
     public db: DatabaseService;
     public cache: CacheService;
     public ratelimit: RateLimitService;
@@ -42,7 +44,8 @@ export class R3NDERClient extends Client {
         super(options);
         this.db = new DatabaseService();
         this.ai = new AIService();
-        this.music = new MusicService(this);
+        this.voiceManager = new VoiceManager();
+        this.music = new MusicService(this, this.voiceManager);
         this.cache = new CacheService();
         this.ratelimit = new RateLimitService();
         this.vision = new VisionService();

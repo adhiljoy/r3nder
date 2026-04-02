@@ -12,11 +12,12 @@ import { Guild } from "../../shared/models/Guild";
 
 dotenv.config({ path: path.join(__dirname, "../../../.env") });
 
-import axios from "axios";
-
-const app = express();
 import { createServer } from "http";
 import { Server } from "socket.io";
+import axios from "axios";
+import adminRouter from "./routes/Admin";
+
+const app = express();
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -133,59 +134,8 @@ const checkAdmin = (req: any, res: any, next: any) => {
 
 import { Log } from "../../shared/models/Log";
 
-// Admin API Routes
-app.get("/api/admin/overview", isAuth, checkAdmin, async (req, res) => {
-    try {
-        const totalLogs = await Log.countDocuments();
-        const totalGuilds = await Guild.countDocuments();
-        const totalUsers = await User.countDocuments();
-        
-        // Stats by type
-        const statsByType = await Log.aggregate([
-            { $group: { _id: "$type", count: { $sum: 1 } } }
-        ]);
-
-        res.json({
-            totalLogs,
-            totalGuilds,
-            totalUsers,
-            statsByType
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Failed to fetch admin stats" });
-    }
-});
-
-app.get("/api/admin/logs", isAuth, checkAdmin, async (req, res) => {
-    const { page = 1, limit = 50, type, guildId, userId, search } = req.query;
-    const skip = (Number(page) - 1) * Number(limit);
-
-    const query: any = {};
-    if (type) query.type = type;
-    if (guildId) query.guildId = guildId;
-    if (userId) query.userId = userId;
-    if (search) {
-        query.content = { $regex: search, $options: "i" };
-    }
-
-    try {
-        const logs = await Log.find(query)
-            .sort({ timestamp: -1 })
-            .skip(skip)
-            .limit(Number(limit));
-        
-        const total = await Log.countDocuments(query);
-
-        res.json({
-            logs,
-            total,
-            pages: Math.ceil(total / Number(limit)),
-            currentPage: Number(page)
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Failed to fetch logs" });
-    }
-});
+// Admin API Router
+app.use("/api/admin", isAuth, adminRouter);
 // Auth Routes
 app.post("/api/premium/upgrade", isAuth, async (req, res) => {
     const { tier } = req.body;

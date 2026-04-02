@@ -15,7 +15,8 @@ export enum LogType {
     SYSTEM = "system",
     ERROR = "error",
     VOICE = "voice",
-    JOIN_LEAVE = "join_leave"
+    JOIN_LEAVE = "join_leave",
+    MUSIC = "music"
 }
 
 export interface ILog extends Document {
