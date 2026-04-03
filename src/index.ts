@@ -7,11 +7,12 @@ import { R3NDERClient } from "./client/R3nderClient";
 import { startDashboard } from "./DashboardServer";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+// 👇 REQUIRED FOR RENDER
+const PORT = process.env.PORT || 10000;
 
-// Render Production Heartbeat
+// Root route
 app.get("/", (req, res) => {
-    res.send("🚀 R3NDER Backend is LIVE");
+    res.send("🚀 R3NDER is LIVE");
 });
 
 export const client = new R3NDERClient({
@@ -35,9 +36,9 @@ client.initialize().then(() => {
         console.error("❌ CRITICAL: No Identity Coordinate detected (TOKEN or DISCORD_TOKEN is missing)");
     }
 
-    // Launching the Port-Aware Pulse
+    // START SERVER
     app.listen(PORT, () => {
-        console.log(`[R3NDER] Port-Aware Pulse running on port ${PORT}`);
+        console.log(`🔥 Server running on port ${PORT}`);
         startDashboard(client); // Initializing dashboard monolith
     });
 }).catch((error: Error) => {
