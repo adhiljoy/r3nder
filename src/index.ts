@@ -11,14 +11,14 @@ import { setupDashboard } from "./DashboardServer";
 dotenv.config();
 
 /**
- * 🚀 R3NDER PRODUCTION SERVER (MONOLITH)
- * Combined Discord Bot + Backend API + Dashboard State
+ * 🚀 R3NDER MONOLITHIC DEPLOYMENT (RENDER OPTIMIZED)
+ * Combines Express API + Discord Bot + Dashboard Support
  */
 
 const app = express();
 const PORT = Number(process.env.PORT) || 10000;
 
-// ✅ MIDDLEWARE CONFIGURATION
+// ✅ EXPRESS MIDDLEWARE
 app.use(express.json());
 app.use(cors({
     origin: process.env.FRONTEND_URL || "*",
@@ -27,7 +27,16 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"]
 }));
 
-// ✅ BOT BRAIN INITIALIZATION
+// ✅ HEALTH & STATUS ENDPOINTS
+app.get("/", (req, res) => {
+    res.send("🚀 R3NDER Backend Live (Port Bound & Ready)");
+});
+
+app.get("/health", (req, res) => {
+    res.json({ status: "ok", timestamp: new Date(), bot: client.isReady() });
+});
+
+// ✅ INITIALIZE DISCORD CLIENT
 export const client = new R3NDERClient({
     intents: [
         GatewayIntentBits.Guilds,
@@ -40,37 +49,22 @@ export const client = new R3NDERClient({
     partials: [Partials.Channel, Partials.Message, Partials.User, Partials.GuildMember],
 });
 
-// ✅ ROOT STATUS ROUTES
-app.get("/", (req, res) => {
-    res.send("🚀 R3NDER Backend Live (API & API Gateway)");
-});
-
-app.get("/health", (req, res) => {
-    res.json({ 
-        status: "ok", 
-        timestamp: new Date().toISOString(), 
-        botReady: client.isReady(),
-        ping: client.ws.ping
-    });
-});
-
 /**
- * ───────────────────────────────────────
  * 🏁 BOOTSTRAP: PARALLEL EXECUTION ARCHITECTURE
- * ───────────────────────────────────────
+ * Render requires immediate HTTP server binding.
  */
 
-// 1. Setup Dashboard / API Routes BEFORE Listening
+// 1. Setup API / Dashboard Routes
 setupDashboard(app, client);
 
-// 2. Start HTTP Server IMMEDIATELY (Render Requirement)
+// 2. Start HTTP Server (Key Fix for "No open ports detected")
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`🔥 SERVER RUNNING ON PORT ${PORT}`);
     
-    // 3. Initialize Discord Bot in Background
+    // 3. Start Discord Bot in Background
     client.initialize().then(() => {
-        console.log(`🤖 R3NDER Bot logged in as ${client.user?.tag}`);
+        console.log(`🤖 Bot logged in as ${client.user?.tag || "Unknown"}`);
     }).catch((error) => {
-        console.error("❌ CRITICAL: Bot Execution Failure during initialization.", error);
+        console.error("❌ Bot Initialization Error:", error);
     });
 });

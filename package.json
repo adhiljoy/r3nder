@@ -9,7 +9,7 @@
     "dev:bot": "ts-node -r tsconfig-paths/register src/index.ts",
     "dev:server": "cd dashboard/server && ts-node -r tsconfig-paths/register src/server.ts",
     "dev:client": "cd dashboard/client && npm run dev",
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
     "build:client": "cd dashboard/client && npm install && npm run build",
     "tsc:check": "npx tsc --noEmit && cd dashboard/server && npx tsc --noEmit && cd ../client && npx tsc --noEmit"
 
