@@ -44,20 +44,19 @@ export const client = new R3NDERClient({
     partials: [Partials.Channel, Partials.Message, Partials.User, Partials.GuildMember],
 });
 
-client.initialize().then(() => {
-    console.log("[R3NDER] Bot Heartbeat online.");
-    
-    // Identity Pulse Check
-    const token = process.env.TOKEN || process.env.DISCORD_TOKEN;
-    if (!token) {
-        console.error("❌ CRITICAL: No Identity Coordinate detected (TOKEN or DISCORD_TOKEN is missing)");
-    }
+// ================== PARALLEL EXECUTION ==================
 
-    // START SERVER (THIS IS THE KEY FIX)
-    app.listen(PORT, "0.0.0.0", () => {
-        console.log(`🔥 Server running on port ${PORT}`);
-        startDashboard(client); // Initializing dashboard monolith
+// 1. Start Server IMMEDIATELY (Render requires this)
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`🔥 SERVER RUNNING ON PORT ${PORT}`);
+    
+    // 2. Initialize Bot in background
+    client.initialize().then(() => {
+        console.log("🤖 R3NDER Bot logged in and ready");
+        
+        // 3. Initialize Dashboard server (Shares backend state)
+        startDashboard(client); 
+    }).catch((error) => {
+        console.error("❌ Bot Initialization Error:", error);
     });
-}).catch((error: Error) => {
-    console.error("[Index Error] Failed to initialize R3NDER:", error);
 });
