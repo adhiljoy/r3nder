@@ -2,17 +2,34 @@ import * as dns from "node:dns";
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 import { GatewayIntentBits, Partials } from "discord.js";
 import { R3NDERClient } from "./client/R3nderClient";
 import { startDashboard } from "./DashboardServer";
 
-const app = express();
-// 👇 REQUIRED FOR RENDER
-const PORT = process.env.PORT || 10000;
+dotenv.config();
 
-// Root route
+const app = express();
+
+// ✅ IMPORTANT: Render port
+const PORT = Number(process.env.PORT) || 10000;
+
+// ✅ Middleware
+app.use(express.json());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "*",
+  credentials: true
+}));
+
+// ✅ ROOT ROUTE (fixes "Cannot GET /")
 app.get("/", (req, res) => {
-    res.send("🚀 R3NDER is LIVE");
+  res.send("🚀 R3NDER Backend Live");
+});
+
+// ✅ HEALTH CHECK
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
 });
 
 export const client = new R3NDERClient({
@@ -36,8 +53,8 @@ client.initialize().then(() => {
         console.error("❌ CRITICAL: No Identity Coordinate detected (TOKEN or DISCORD_TOKEN is missing)");
     }
 
-    // START SERVER
-    app.listen(PORT, () => {
+    // START SERVER (THIS IS THE KEY FIX)
+    app.listen(PORT, "0.0.0.0", () => {
         console.log(`🔥 Server running on port ${PORT}`);
         startDashboard(client); // Initializing dashboard monolith
     });
