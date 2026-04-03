@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 
 // Render Production Heartbeat
 app.get("/", (req, res) => {
-    res.send("R3NDER Bot is Alive 🚀");
+    res.send("🚀 R3NDER Backend is LIVE");
 });
 
 export const client = new R3NDERClient({
