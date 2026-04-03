@@ -25,26 +25,18 @@ const bot = new Client({
 });
 
 bot.once("ready", () => {
-    if (bot.user) {
-        console.log(`🤖 Bot ready: ${bot.user.tag}`);
-    }
+    console.log("🔥 BOT ONLINE:", bot.user?.tag);
 });
 
+bot.on("error", console.error);
+
 // ✅ LOGIN BOT
-if (process.env.DISCORD_TOKEN) {
-    bot.login(process.env.DISCORD_TOKEN).catch(err => console.error("❌ Login error:", err));
-} else {
-    console.error("❌ DISCORD_TOKEN is missing from environment variables.");
-}
+bot.login(process.env.DISCORD_TOKEN);
 
 // ✅ MONGODB
-if (process.env.MONGO_URI) {
-    mongoose.connect(process.env.MONGO_URI)
-      .then(() => console.log("✅ MongoDB connected"))
-      .catch(err => console.error("❌ Mongo error:", err));
-} else {
-    console.error("❌ MONGO_URI is missing from environment variables.");
-}
+mongoose.connect(process.env.MONGO_URI!)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch(err => console.error("❌ Mongo error:", err));
 
 // ✅ START SERVER
 app.listen(PORT, "0.0.0.0", () => {
