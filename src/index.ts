@@ -24,7 +24,7 @@ const bot = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-bot.once("ready", () => {
+bot.once("clientReady", () => {
     console.log("🔥 BOT ONLINE:", bot.user?.tag);
 });
 

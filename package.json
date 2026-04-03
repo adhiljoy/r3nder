@@ -1,6 +1,7 @@
 {
   "name": "r3nder",
   "version": "1.0.0",
+  "type": "module",
   "description": "Premium Discord Bot with Web Dashboard",
   "main": "src/index.ts",
   "scripts": {
