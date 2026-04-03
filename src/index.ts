@@ -1,44 +1,70 @@
+import * as dns from "node:dns";
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
 import express from "express";
-import { Client, GatewayIntentBits } from "discord.js";
-import mongoose from "mongoose";
+import cors from "cors";
 import dotenv from "dotenv";
+import { GatewayIntentBits, Partials, REST, Routes } from "discord.js";
+import { R3NDERClient } from "./client/R3nderClient";
+import { setupDashboard } from "./DashboardServer";
 
 dotenv.config();
 
-const app = express();
+/**
+ * 🚀 R3NDER MONOLITHIC PRODUCTION SERVER
+ * Consolidated API, Bot, and Dashboard support within a single stable lifecycle.
+ */
 
-// ✅ PORT FIX (IMPORTANT FOR RENDER)
+const app = express();
 const PORT = Number(process.env.PORT) || 10000;
 
-// ✅ HEALTH ROUTES
+// ✅ EXPRESS MIDDLEWARE
+app.use(express.json());
+app.use(cors({
+    origin: process.env.FRONTEND_URL || "*",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"]
+}));
+
+// ✅ BOT BRAIN INITIALIZATION
+export const client = new R3NDERClient({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildPresences,
+    ],
+    partials: [Partials.Channel, Partials.Message, Partials.User, Partials.GuildMember],
+});
+
+// ✅ ROOT STATUS ROUTES
 app.get("/", (req, res) => {
-  res.send("🔥 R3NDER Backend Live");
+    res.send("🚀 R3NDER Backend Live (API & Gateway)");
 });
 
 app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
+    res.json({ status: "ok", timestamp: new Date(), bot: client.isReady() });
 });
 
-// ✅ DISCORD BOT
-const bot = new Client({
-  intents: [GatewayIntentBits.Guilds]
-});
+/**
+ * 🏁 BOOTSTRAP: PARALLEL EXECUTION ARCHITECTURE
+ * Render.com requires immediate HTTP server binding. 
+ */
 
-bot.once("ready", () => {
-    console.log("🔥 BOT ONLINE:", bot.user?.tag);
-});
+// 1. Setup API / Dashboard Routes
+setupDashboard(app, client);
 
-bot.on("error", console.error);
-
-// ✅ LOGIN BOT
-bot.login(process.env.DISCORD_TOKEN);
-
-// ✅ MONGODB
-mongoose.connect(process.env.MONGO_URI!)
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch(err => console.error("❌ Mongo error:", err));
-
-// ✅ START SERVER
+// 2. Start HTTP Server (Key Fix for Render detection)
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🔥 SERVER RUNNING ON PORT ${PORT}`);
+    
+    // 3. Initialize Discord Bot in Background
+    client.initialize().then(() => {
+        console.log(`🤖 Bot online as ${client.user?.tag || "R3NDER"}`);
+    }).catch((error) => {
+        console.error("❌ Bot Startup Failed:", error);
+    });
 });

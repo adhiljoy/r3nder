@@ -4,6 +4,7 @@
   "description": "Premium Discord Bot with Web Dashboard",
   "main": "src/index.ts",
   "scripts": {
+    "dev": "ts-node src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },
